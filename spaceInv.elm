@@ -45,7 +45,7 @@ type alias Game =
   { state : State
   , ball : Ball
   , player : Player
-  , bricks: List(Brick)  
+  , bricks: List(Brick)
   }
 
 
@@ -77,7 +77,7 @@ update : Input -> Game -> Game
 update {space,dir1, dir2, delta} ({state,ball,player,bricks} as game) =
   let
     score1 = 0
-      
+
 
     newState =
       if  | space ->
@@ -95,7 +95,7 @@ update {space,dir1, dir2, delta} ({state,ball,player,bricks} as game) =
       else
         updateBall delta ball player
 
-    
+
 
   in
     { game |
@@ -130,7 +130,7 @@ updatePlayer t dir points player =
       physicsUpdate  t { player | vy <- toFloat dir * 200 }
   in
     { player |
-        
+
         score <- player.score + points
     }
 
@@ -155,7 +155,7 @@ stepVy vx vy leftCollision rightCollision =
       | rightCollision ->
           -(abs vy)
       | otherwise ->
-          vy          
+          vy
 
 
 
@@ -175,7 +175,7 @@ view (w,h) {state,ball,player,bricks} =
           |> make ball
       , rect 40 10
           |> make player
-     
+
       , toForm (if state == Play then spacer 1 1 else txt identity msg)
           |> move (0, 40 - gameHeight/2)
       ]++ (rect 50 10
@@ -209,11 +209,11 @@ makeList objlist shape =
 
  case objlist of
         [] -> []
-        o::obj -> (shape  
-                        |> filled red
+        o::obj -> (shape
+                        |> filled blue
                         |> move (o.x,o.y)
                   ) :: makeList obj shape
-   
+
 
 -- SIGNALS
 

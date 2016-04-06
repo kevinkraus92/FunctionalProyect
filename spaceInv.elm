@@ -6,6 +6,7 @@ import Keyboard
 import Text
 import Time exposing (..)
 import Window
+import Debug
 
 
 -- MODEL
@@ -51,7 +52,7 @@ type alias Game =
 
 player : Float -> Player
 player x =
-  Player x -300 0 0 0
+  Player x -150 0 0 0
 
 
 defaultGame : Game
@@ -63,10 +64,11 @@ defaultGame =
   }
 
 
+
+
 type alias Input =
   { space : Bool
   , dir1 : Int
-  , dir2 : Int
   , delta : Time
   }
 
@@ -74,10 +76,9 @@ type alias Input =
 -- UPDATE
 
 update : Input -> Game -> Game
-update {space,dir1, dir2, delta} ({state,ball,player,bricks} as game) =
+update {space,dir1, delta} ({state,ball,player,bricks} as game) =
   let
     score1 = 0
-
 
     newState =
       if  | space ->
@@ -114,7 +115,7 @@ updateBall t ({x,y,vx,vy} as ball) p1 =
     physicsUpdate t
       { ball |
           vx <- stepVx vx vy (x < 7-halfWidth)(x > halfWidth-7),
-          vy <- stepVy vx vy (y < 7-halfHeight) (y > halfHeight-7)
+          vy <- stepVy vx vy (y < 7-halfHeight) (y > halfHeight-7) ( x >= p1.x - 10 && x<= p1.x +10 && y >= -155 && y <= -145)
       }
 
 physicsUpdate t ({x,y,vx,vy} as obj) =
@@ -123,14 +124,21 @@ physicsUpdate t ({x,y,vx,vy} as obj) =
       y <- y + vy * t
   }
 
+physicsUpdatePlayer t ({x,y,vx,vy} as obj) =
+  { obj |
+      x <- x + vx * t,
+      y <- y + vy * t
+  }
+
+
 updatePlayer : Time -> Int -> Int -> Player -> Player
 updatePlayer t dir points player =
   let
-    player =
-      physicsUpdate  t { player | vy <- toFloat dir * 200 }
+    player_aux =
+      Debug.watch "p_aux" (physicsUpdatePlayer  t { player | vx <- toFloat dir * 200 })
   in
-    { player |
-
+    { player_aux |
+        x <- clamp (22-halfHeight) (halfHeight-22) player_aux.x,
         score <- player.score + points
     }
 
@@ -149,13 +157,16 @@ stepVx vx vy leftCollision rightCollision =
       | otherwise ->
           vx
 
-stepVy vx vy leftCollision rightCollision =
-  if  | leftCollision ->
+stepVy vx vy leftCollision rightCollision playerCollision =
+  if  | playerCollision ->
+          -1* vy
+      | leftCollision ->
           abs vy
       | rightCollision ->
           -(abs vy)
       | otherwise ->
           vy
+          
 
 
 
@@ -165,7 +176,8 @@ view : (Int,Int) -> Game -> Element
 view (w,h) {state,ball,player,bricks} =
   let
     scores =
-      txt (Text.height 50) ("Desarrollado en Elm"  )
+      (txt (Text.height 50) ("Desarrollado en Elm"  ))
+ 
   in
     container w h middle <|
     collage gameWidth gameHeight
@@ -180,8 +192,7 @@ view (w,h) {state,ball,player,bricks} =
           |> move (0, 40 - gameHeight/2)
       ]++ (rect 50 10
           |> makeList bricks))
-
-
+    
 pongGreen =
   rgb 0 0 0
 
@@ -203,7 +214,7 @@ msg = "SPACE to start, &uarr;&darr; to move"
 make obj shape =
   shape
     |> filled white
-    |> move (obj.x,obj.y)
+    |> move (obj.x, obj.y)
 
 makeList objlist shape =
 
@@ -233,9 +244,8 @@ delta =
 input : Signal Input
 input =
   Signal.sampleOn delta <|
-    Signal.map4 Input
+    Signal.map3 Input
       Keyboard.space
-      (Signal.map .y Keyboard.wasd)
       (Signal.map .y Keyboard.arrows)
       delta
 

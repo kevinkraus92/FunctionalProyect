@@ -11,11 +11,11 @@ import Debug
 
 -- MODEL
 
-(gameWidth,gameHeight) = (600,400)
-(halfWidth,halfHeight) = (300,200)
+(gameWidth,gameHeight) = (400,400)
+(halfWidth,halfHeight) = (200,200)
 
 
-type State = Play | Pause
+type State = Play | Pause | Won | Lost
 
 
 type alias Ball =
@@ -60,9 +60,8 @@ defaultGame =
   { state = Pause
   , ball = Ball 0 0 200 200
   , player = player (20 - halfWidth)
-  , bricks = [Brick -200 100 1, Brick -100 100 1, Brick 0 100 1, Brick 100 100 1, Brick 200 100 1,Brick -200 150 1, Brick -100 150 1, Brick 0 150 1, Brick 100 150 1, Brick 200 150 1]
+  , bricks = [Brick -100 100 1, Brick 0 100 1, Brick 100 100 1, Brick -100 150 1, Brick 0 150 1, Brick 100 150 1]
   }
-
 
 
 
@@ -81,11 +80,17 @@ update {space,dir1, delta} ({state,ball,player,bricks} as game) =
     score1 = 0
 
     newState =
-      if  | space ->
+      if  | space && state == Play ->
+              Pause
+
+          | space && state == Pause ->
               Play
 
-          | score1 == 10 ->
-              Pause
+          | score1 == 6 ->
+              Won
+
+          | score1 == -1 ->
+              Lost    
 
           | otherwise ->
               state
@@ -147,7 +152,7 @@ near k c n =
   n >= k-c && n <= k+c
 
 within ball paddle =
-  near paddle.x 8 ball.x && near paddle.y 20 ball.y
+  near paddle.x 80 ball.x && near paddle.y 40 ball.y
 
 stepVx vx vy leftCollision rightCollision =
   if  | leftCollision ->
@@ -188,10 +193,17 @@ view (w,h) {state,ball,player,bricks} =
       , rect 40 10
           |> make player
 
-      , toForm (if state == Play then spacer 1 1 else txt identity msg)
+      , toForm (if state == Play then spacer 1 1 
+                else if state == Won then
+                  txt identity msgWon
+                else if state == Lost then        
+                  txt identity msgLost
+                else 
+                  txt identity msg)
           |> move (0, 40 - gameHeight/2)
       ]++ (rect 50 10
           |> makeList bricks))
+      
     
 pongGreen =
   rgb 0 0 0
@@ -210,6 +222,8 @@ txt f string =
 
 
 msg = "SPACE to start, &uarr;&darr; to move"
+msgWon = "Won"
+msgLost = "Lost"
 
 make obj shape =
   shape
@@ -246,6 +260,6 @@ input =
   Signal.sampleOn delta <|
     Signal.map3 Input
       Keyboard.space
-      (Signal.map .y Keyboard.arrows)
+      (Signal.map .x Keyboard.arrows)
       delta
 

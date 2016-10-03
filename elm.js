@@ -3154,7 +3154,7 @@ Elm.Main.make = function (_elm) {
             case "[]":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 221 and 226");
+         "between lines 235 and 240");
       }();
    });
    var make = F2(function (obj,
@@ -3163,6 +3163,8 @@ Elm.Main.make = function (_elm) {
                                     ,_0: obj.x
                                     ,_1: obj.y})($Graphics$Collage.filled($Color.white)(shape));
    });
+   var msgLost = "Lost";
+   var msgWon = "Won";
    var msg = "SPACE to start, &uarr;&darr; to move";
    var textGreen = A3($Color.rgb,
    160,
@@ -3198,10 +3200,10 @@ Elm.Main.make = function (_elm) {
    paddle) {
       return A3(near,
       paddle.x,
-      8,
+      80,
       ball.x) && A3(near,
       paddle.y,
-      20,
+      40,
       ball.y);
    });
    var physicsUpdatePlayer = F2(function (t,
@@ -3235,7 +3237,7 @@ Elm.Main.make = function (_elm) {
    $Keyboard.space,
    A2($Signal.map,
    function (_) {
-      return _.y;
+      return _.x;
    },
    $Keyboard.arrows),
    delta));
@@ -3287,28 +3289,26 @@ Elm.Main.make = function (_elm) {
              ,x: a
              ,y: b};
    });
+   var Lost = {ctor: "Lost"};
+   var Won = {ctor: "Won"};
    var Pause = {ctor: "Pause"};
    var Play = {ctor: "Play"};
    var $ = {ctor: "_Tuple2"
-           ,_0: 300
+           ,_0: 200
            ,_1: 200},
    halfWidth = $._0,
    halfHeight = $._1;
    var defaultGame = {_: {}
                      ,ball: A4(Ball,0,0,200,200)
                      ,bricks: _L.fromArray([A3(Brick,
-                                           -200,
+                                           -100,
                                            100,
                                            1)
-                                           ,A3(Brick,-100,100,1)
                                            ,A3(Brick,0,100,1)
                                            ,A3(Brick,100,100,1)
-                                           ,A3(Brick,200,100,1)
-                                           ,A3(Brick,-200,150,1)
                                            ,A3(Brick,-100,150,1)
                                            ,A3(Brick,0,150,1)
-                                           ,A3(Brick,100,150,1)
-                                           ,A3(Brick,200,150,1)])
+                                           ,A3(Brick,100,150,1)])
                      ,player: player(20 - halfWidth)
                      ,state: Pause};
    var updateBall = F3(function (t,
@@ -3378,8 +3378,11 @@ Elm.Main.make = function (_elm) {
                _v10.ball,
                _v10.player);
                var score1 = 0;
-               var newState = _v9.space ? Play : _U.eq(score1,
-               10) ? Pause : _v10.state;
+               var newState = _v9.space && _U.eq(_v10.state,
+               Play) ? Pause : _v9.space && _U.eq(_v10.state,
+               Pause) ? Play : _U.eq(score1,
+               6) ? Won : _U.eq(score1,
+               -1) ? Lost : _v10.state;
                return _U.replace([["state"
                                   ,newState]
                                  ,["ball",newBall]
@@ -3400,7 +3403,7 @@ Elm.Main.make = function (_elm) {
    defaultGame,
    input);
    var $ = {ctor: "_Tuple2"
-           ,_0: 600
+           ,_0: 400
            ,_1: 400},
    gameWidth = $._0,
    gameHeight = $._1;
@@ -3435,7 +3438,13 @@ Elm.Main.make = function (_elm) {
                                                          ,_1: 40 - gameHeight / 2})($Graphics$Collage.toForm(_U.eq(_v14.state,
                                  Play) ? A2($Graphics$Element.spacer,
                                  1,
-                                 1) : A2(txt,
+                                 1) : _U.eq(_v14.state,
+                                 Won) ? A2(txt,
+                                 $Basics.identity,
+                                 msgWon) : _U.eq(_v14.state,
+                                 Lost) ? A2(txt,
+                                 $Basics.identity,
+                                 msgLost) : A2(txt,
                                  $Basics.identity,
                                  msg)))]),
                     makeList(_v14.bricks)(A2($Graphics$Collage.rect,
@@ -3443,7 +3452,7 @@ Elm.Main.make = function (_elm) {
                     10)))));
                  }();}
             _U.badCase($moduleName,
-            "between lines 177 and 194");
+            "between lines 182 and 205");
          }();
       }();
    });
@@ -3458,6 +3467,8 @@ Elm.Main.make = function (_elm) {
                       ,halfWidth: halfWidth
                       ,Play: Play
                       ,Pause: Pause
+                      ,Won: Won
+                      ,Lost: Lost
                       ,Ball: Ball
                       ,Player: Player
                       ,Brick: Brick
@@ -3479,6 +3490,8 @@ Elm.Main.make = function (_elm) {
                       ,textGreen: textGreen
                       ,txt: txt
                       ,msg: msg
+                      ,msgWon: msgWon
+                      ,msgLost: msgLost
                       ,make: make
                       ,makeList: makeList
                       ,main: main

@@ -85,10 +85,10 @@ update {space,dir1, delta} ({state,ball,player,bricks} as game) =
           | space && state == Pause ->
               Play
 
-          | score1 == 6 ->
+          | 0 == (countBricks bricks) ->
               Won
 
-          | score1 == -1 ->
+          | (ball.y < 7-halfHeight) ->
               Lost
 
           | otherwise ->
@@ -106,6 +106,7 @@ update {space,dir1, delta} ({state,ball,player,bricks} as game) =
         player <- updatePlayer delta dir1 score1 player,
         bricks <- newBricks
     }
+
 
 
 updateBall : Time -> Ball -> Player -> List(Brick)-> Ball
@@ -128,7 +129,9 @@ brickCollision bricks ball = case bricks of
                                 then True
                                 else brickCollision bricks ball
 
-
+countBricks bricks = case bricks of
+                              [] -> 0
+                              brick::bricks -> 1 + countBricks bricks
 
 updateBricks : Time -> List(Brick) -> Ball -> List(Brick)
 updateBricks delta bricks ball = foldBrick ball bricks

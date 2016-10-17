@@ -3154,7 +3154,7 @@ Elm.Main.make = function (_elm) {
             case "[]":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 253 and 258");
+         "between lines 256 and 261");
       }();
    });
    var make = F2(function (obj,
@@ -3223,7 +3223,7 @@ Elm.Main.make = function (_elm) {
             case "[]":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 162 and 166");
+         "between lines 165 and 169");
       }();
    });
    var physicsUpdatePlayer = F2(function (t,
@@ -3251,6 +3251,16 @@ Elm.Main.make = function (_elm) {
       ball,
       bricks);
    });
+   var countBricks = function (bricks) {
+      return function () {
+         switch (bricks.ctor)
+         {case "::":
+            return 1 + countBricks(bricks._1);
+            case "[]": return 0;}
+         _U.badCase($moduleName,
+         "between lines 132 and 134");
+      }();
+   };
    var brickCollision = F2(function (bricks,
    ball) {
       return function () {
@@ -3265,7 +3275,7 @@ Elm.Main.make = function (_elm) {
               ball);
             case "[]": return false;}
          _U.badCase($moduleName,
-         "between lines 125 and 129");
+         "between lines 126 and 130");
       }();
    });
    var Input = F3(function (a,
@@ -3356,42 +3366,42 @@ Elm.Main.make = function (_elm) {
                      ,player: player(20 - halfWidth)
                      ,state: Pause};
    var updateBall = F4(function (t,
-   _v13,
+   _v16,
    p1,
    bricks) {
       return function () {
          return $Basics.not(A2(near,
          0,
-         halfWidth)(_v13.x)) ? _U.replace([["x"
+         halfWidth)(_v16.x)) ? _U.replace([["x"
                                            ,0]
                                           ,["y",0]],
-         _v13) : A2(physicsUpdate,
+         _v16) : A2(physicsUpdate,
          t,
          _U.replace([["vx"
                      ,A4(stepVx,
-                     _v13.vx,
-                     _v13.vy,
-                     _U.cmp(_v13.x,
+                     _v16.vx,
+                     _v16.vy,
+                     _U.cmp(_v16.x,
                      7 - halfWidth) < 0,
-                     _U.cmp(_v13.x,
+                     _U.cmp(_v16.x,
                      halfWidth - 7) > 0)]
                     ,["vy"
                      ,A6(stepVy,
-                     _v13.vx,
-                     _v13.vy,
-                     _U.cmp(_v13.y,
+                     _v16.vx,
+                     _v16.vy,
+                     _U.cmp(_v16.y,
                      7 - halfHeight) < 0,
-                     _U.cmp(_v13.y,
+                     _U.cmp(_v16.y,
                      halfHeight - 7) > 0,
-                     _U.cmp(_v13.x,
-                     p1.x - 40) > -1 && (_U.cmp(_v13.x,
-                     p1.x + 40) < 1 && (_U.cmp(_v13.y,
-                     -155) > -1 && _U.cmp(_v13.y,
+                     _U.cmp(_v16.x,
+                     p1.x - 40) > -1 && (_U.cmp(_v16.x,
+                     p1.x + 40) < 1 && (_U.cmp(_v16.y,
+                     -155) > -1 && _U.cmp(_v16.y,
                      -145) < 1)),
                      A2(brickCollision,
                      bricks,
-                     _v13))]],
-         _v13));
+                     _v16))]],
+         _v16));
       }();
    });
    var updatePlayer = F4(function (t,
@@ -3416,38 +3426,38 @@ Elm.Main.make = function (_elm) {
          player_aux);
       }();
    });
-   var update = F2(function (_v15,
-   _v16) {
+   var update = F2(function (_v18,
+   _v19) {
       return function () {
          return function () {
             return function () {
                var newBricks = A3(updateBricks,
-               _v15.delta,
-               _v16.bricks,
-               _v16.ball);
-               var newBall = _U.eq(_v16.state,
-               Pause) ? _v16.ball : A4(updateBall,
-               _v15.delta,
-               _v16.ball,
-               _v16.player,
-               _v16.bricks);
+               _v18.delta,
+               _v19.bricks,
+               _v19.ball);
+               var newBall = _U.eq(_v19.state,
+               Pause) ? _v19.ball : A4(updateBall,
+               _v18.delta,
+               _v19.ball,
+               _v19.player,
+               _v19.bricks);
+               var newState = _v18.space && _U.eq(_v19.state,
+               Play) ? Pause : _v18.space && _U.eq(_v19.state,
+               Pause) ? Play : _U.eq(0,
+               countBricks(_v19.bricks)) ? Won : _U.cmp(_v19.ball.y,
+               7 - halfHeight) < 0 ? Lost : _v19.state;
                var score1 = 0;
-               var newState = _v15.space && _U.eq(_v16.state,
-               Play) ? Pause : _v15.space && _U.eq(_v16.state,
-               Pause) ? Play : _U.eq(score1,
-               6) ? Won : _U.eq(score1,
-               -1) ? Lost : _v16.state;
                return _U.replace([["state"
                                   ,newState]
                                  ,["ball",newBall]
                                  ,["player"
                                   ,A4(updatePlayer,
-                                  _v15.delta,
-                                  _v15.dir1,
+                                  _v18.delta,
+                                  _v18.dir1,
                                   score1,
-                                  _v16.player)]
+                                  _v19.player)]
                                  ,["bricks",newBricks]],
-               _v16);
+               _v19);
             }();
          }();
       }();
@@ -3461,19 +3471,19 @@ Elm.Main.make = function (_elm) {
            ,_1: 400},
    gameWidth = $._0,
    gameHeight = $._1;
-   var view = F2(function (_v19,
-   _v20) {
+   var view = F2(function (_v22,
+   _v23) {
       return function () {
          return function () {
-            switch (_v19.ctor)
+            switch (_v22.ctor)
             {case "_Tuple2":
                return function () {
                     var scores = A2(txt,
                     $Text.height(50),
                     "Desarrollado en Elm");
                     return A3($Graphics$Element.container,
-                    _v19._0,
-                    _v19._1,
+                    _v22._0,
+                    _v22._1,
                     $Graphics$Element.middle)(A3($Graphics$Collage.collage,
                     gameWidth,
                     gameHeight,
@@ -3481,32 +3491,32 @@ Elm.Main.make = function (_elm) {
                     _L.fromArray([$Graphics$Collage.filled(pongGreen)(A2($Graphics$Collage.rect,
                                  gameWidth,
                                  gameHeight))
-                                 ,make(_v20.ball)(A2($Graphics$Collage.oval,
+                                 ,make(_v23.ball)(A2($Graphics$Collage.oval,
                                  15,
                                  15))
-                                 ,make(_v20.player)(A2($Graphics$Collage.rect,
+                                 ,make(_v23.player)(A2($Graphics$Collage.rect,
                                  80,
                                  10))
                                  ,$Graphics$Collage.move({ctor: "_Tuple2"
                                                          ,_0: 0
-                                                         ,_1: 40 - gameHeight / 2})($Graphics$Collage.toForm(_U.eq(_v20.state,
+                                                         ,_1: 40 - gameHeight / 2})($Graphics$Collage.toForm(_U.eq(_v23.state,
                                  Play) ? A2($Graphics$Element.spacer,
                                  1,
-                                 1) : _U.eq(_v20.state,
+                                 1) : _U.eq(_v23.state,
                                  Won) ? A2(txt,
                                  $Basics.identity,
-                                 msgWon) : _U.eq(_v20.state,
+                                 msgWon) : _U.eq(_v23.state,
                                  Lost) ? A2(txt,
                                  $Basics.identity,
                                  msgLost) : A2(txt,
                                  $Basics.identity,
                                  msg)))]),
-                    makeList(_v20.bricks)(A2($Graphics$Collage.rect,
+                    makeList(_v23.bricks)(A2($Graphics$Collage.rect,
                     50,
                     10)))));
                  }();}
             _U.badCase($moduleName,
-            "between lines 200 and 223");
+            "between lines 203 and 226");
          }();
       }();
    });
@@ -3533,6 +3543,7 @@ Elm.Main.make = function (_elm) {
                       ,update: update
                       ,updateBall: updateBall
                       ,brickCollision: brickCollision
+                      ,countBricks: countBricks
                       ,updateBricks: updateBricks
                       ,physicsUpdate: physicsUpdate
                       ,physicsUpdatePlayer: physicsUpdatePlayer

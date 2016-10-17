@@ -78,7 +78,6 @@ update : Input -> Game -> Game
 update {space,dir1, delta} ({state,ball,player,bricks} as game) =
   let
     score1 = 0
-
     newState =
       if  | space && state == Play ->
               Pause
@@ -90,38 +89,40 @@ update {space,dir1, delta} ({state,ball,player,bricks} as game) =
               Won
 
           | score1 == -1 ->
-              Lost    
+              Lost
 
           | otherwise ->
               state
-
     newBall =
       if state == Pause then
         ball
       else
-        updateBall delta ball player
-
-
-
+        updateBall delta ball player bricks
+    newBricks = updateBricks delta bricks ball
   in
     { game |
         state <- newState,
         ball <- newBall,
         player <- updatePlayer delta dir1 score1 player,
-        bricks <- bricks
+        bricks <- newBricks
     }
 
 
-updateBall : Time -> Ball -> Player -> Ball
-updateBall t ({x,y,vx,vy} as ball) p1 =
+updateBall : Time -> Ball -> Player -> List(Brick)-> Ball
+updateBall t ({x,y,vx,vy} as ball) p1 bricks =
   if not (ball.x |> near 0 halfWidth) then
     { ball | x <- 0, y <- 0 }
   else
     physicsUpdate t
       { ball |
           vx <- stepVx vx vy (x < 7-halfWidth)(x > halfWidth-7),
-          vy <- stepVy vx vy (y < 7-halfHeight) (y > halfHeight-7) ( x >= p1.x - 10 && x<= p1.x +10 && y >= -155 && y <= -145)
+          vy <- stepVy vx vy (y < 7-halfHeight) (y > halfHeight-7)
+                ( x >= p1.x - 10 && x<= p1.x +10 && y >= -155 && y <= -145)
       }
+
+updateBricks : Time -> List(Brick) -> Ball -> List(Brick)
+updateBricks delta bricks ball = foldBrick ball bricks
+
 
 physicsUpdate t ({x,y,vx,vy} as obj) =
   { obj |
@@ -146,6 +147,19 @@ updatePlayer t dir points player =
         x <- clamp (22-halfHeight) (halfHeight-22) player_aux.x,
         score <- player.score + points
     }
+--
+-- foldBrick : Ball -> List(Brick) -> Bool
+-- foldBrick ball bricks = case bricks of
+--               [] -> False
+--               brick::bricks -> (near brick.x 80 ball.x && near brick.y 40 ball.y) || (foldBrick ball bricks)
+--
+-- filterBrick: Ball -> List(Brick) -> List(Brick)
+-- filterBrick ball bricks =
+
+foldBrick : Ball -> List(Brick) -> List(Brick)
+foldBrick ball bricks = case bricks of
+              [] -> []
+              brick::bricks -> if (near brick.x 40 ball.x && near brick.y 40 ball.y) then bricks else brick::foldBrick ball bricks
 
 
 near k c n =
@@ -171,7 +185,7 @@ stepVy vx vy leftCollision rightCollision playerCollision =
           -(abs vy)
       | otherwise ->
           vy
-          
+
 
 
 
@@ -182,7 +196,7 @@ view (w,h) {state,ball,player,bricks} =
   let
     scores =
       (txt (Text.height 50) ("Desarrollado en Elm"  ))
- 
+
   in
     container w h middle <|
     collage gameWidth gameHeight
@@ -193,18 +207,18 @@ view (w,h) {state,ball,player,bricks} =
       , rect 40 10
           |> make player
 
-      , toForm (if state == Play then spacer 1 1 
+      , toForm (if state == Play then spacer 1 1
                 else if state == Won then
                   txt identity msgWon
-                else if state == Lost then        
+                else if state == Lost then
                   txt identity msgLost
-                else 
+                else
                   txt identity msg)
           |> move (0, 40 - gameHeight/2)
       ]++ (rect 50 10
           |> makeList bricks))
-      
-    
+
+
 pongGreen =
   rgb 0 0 0
 
@@ -262,4 +276,3 @@ input =
       Keyboard.space
       (Signal.map .x Keyboard.arrows)
       delta
-

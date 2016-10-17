@@ -117,8 +117,18 @@ updateBall t ({x,y,vx,vy} as ball) p1 bricks =
       { ball |
           vx <- stepVx vx vy (x < 7-halfWidth)(x > halfWidth-7),
           vy <- stepVy vx vy (y < 7-halfHeight) (y > halfHeight-7)
-                ( x >= p1.x - 10 && x<= p1.x +10 && y >= -155 && y <= -145)
+                ( x >= p1.x - 40 && x<= p1.x +40 && y >= -155 && y <= -145)
+                (brickCollision bricks ball)
       }
+
+brickCollision : List(Brick) -> Ball -> Bool
+brickCollision bricks ball = case bricks of
+                              [] -> False
+                              brick::bricks -> if (ball.x >= brick.x - 40 && ball.x<= brick.x + 40 && ball.y >= brick.y - 40 && brick.y <= ball.y + 40)
+                                then True
+                                else brickCollision bricks ball
+
+
 
 updateBricks : Time -> List(Brick) -> Ball -> List(Brick)
 updateBricks delta bricks ball = foldBrick ball bricks
@@ -147,19 +157,13 @@ updatePlayer t dir points player =
         x <- clamp (22-halfHeight) (halfHeight-22) player_aux.x,
         score <- player.score + points
     }
---
--- foldBrick : Ball -> List(Brick) -> Bool
--- foldBrick ball bricks = case bricks of
---               [] -> False
---               brick::bricks -> (near brick.x 80 ball.x && near brick.y 40 ball.y) || (foldBrick ball bricks)
---
--- filterBrick: Ball -> List(Brick) -> List(Brick)
--- filterBrick ball bricks =
 
 foldBrick : Ball -> List(Brick) -> List(Brick)
 foldBrick ball bricks = case bricks of
               [] -> []
-              brick::bricks -> if (near brick.x 40 ball.x && near brick.y 40 ball.y) then bricks else brick::foldBrick ball bricks
+              brick::bricks -> if (near brick.x 40 ball.x && near brick.y 40 ball.y)
+                then bricks
+                else brick::foldBrick ball bricks
 
 
 near k c n =
@@ -176,8 +180,10 @@ stepVx vx vy leftCollision rightCollision =
       | otherwise ->
           vx
 
-stepVy vx vy leftCollision rightCollision playerCollision =
+stepVy vx vy leftCollision rightCollision playerCollision brickCollision =
   if  | playerCollision ->
+          -1* vy
+      | brickCollision ->
           -1* vy
       | leftCollision ->
           abs vy
@@ -185,8 +191,6 @@ stepVy vx vy leftCollision rightCollision playerCollision =
           -(abs vy)
       | otherwise ->
           vy
-
-
 
 
 -- VIEW
@@ -204,7 +208,7 @@ view (w,h) {state,ball,player,bricks} =
           |> filled pongGreen
       , oval 15 15
           |> make ball
-      , rect 40 10
+      , rect 80 10
           |> make player
 
       , toForm (if state == Play then spacer 1 1

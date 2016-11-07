@@ -1,6 +1,6 @@
 # FunctionalProyect
 Arkanoid in Elm programming language
-http://kevinkraus92.github.io/FunctionalProyect/spaceinv.html
+http://kevinkraus92.github.io/FunctionalProyect/arkanoid.html
 
 ## Trabajo practico final de la materia programacion funcional
 ITBA

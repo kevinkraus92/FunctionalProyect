@@ -94,7 +94,7 @@ update {space,dir1, delta} ({state,ball,player,bricks} as game) =
           | otherwise ->
               state
     newBall =
-      if state == Pause then
+      if state == Pause || state == Won || state == Lost then
         ball
       else
         updateBall delta ball player bricks

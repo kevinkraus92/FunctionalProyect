@@ -3436,7 +3436,9 @@ Elm.Main.make = function (_elm) {
                _v19.bricks,
                _v19.ball);
                var newBall = _U.eq(_v19.state,
-               Pause) ? _v19.ball : A4(updateBall,
+               Pause) || (_U.eq(_v19.state,
+               Won) || _U.eq(_v19.state,
+               Lost)) ? _v19.ball : A4(updateBall,
                _v18.delta,
                _v19.ball,
                _v19.player,

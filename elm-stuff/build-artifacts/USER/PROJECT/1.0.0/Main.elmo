@@ -49,7 +49,7 @@ Elm.Main.make = function (_elm) {
    });
    var msgLost = "Lost";
    var msgWon = "Won";
-   var msg = "SPACE to start, &uarr;&darr; to move";
+   var msg = "SPACE to start, &larr;&rarr; to move";
    var textGreen = A3($Color.rgb,
    160,
    200,

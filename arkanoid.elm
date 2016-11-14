@@ -242,7 +242,7 @@ txt f string =
     |> leftAligned
 
 
-msg = "SPACE to start, &uarr;&darr; to move"
+msg = "SPACE to start, &larr;&rarr; to move"
 msgWon = "Won"
 msgLost = "Lost"
 

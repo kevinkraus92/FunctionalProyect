@@ -23,6 +23,9 @@ type alias Ball =
   , y : Float
   , vx : Float
   , vy : Float
+  , slowmo: Bool
+  , bigball : Bool
+  , speedup: Bool
   }
 
 
@@ -38,8 +41,10 @@ type alias Brick =
   { x : Float
   , y : Float
   , active : Int
+  , slowmo: Bool
+  , bigball: Bool
+  , speedup: Bool
   }
-
 
 
 type alias Game =
@@ -58,9 +63,14 @@ player x =
 defaultGame : Game
 defaultGame =
   { state = Pause
-  , ball = Ball 0 0 200 200
+  , ball = Ball 0 0 200 200 False False False
   , player = player (20 - halfWidth)
-  , bricks = [Brick -100 100 1, Brick 0 100 1, Brick 100 100 1, Brick -100 150 1, Brick 0 150 1, Brick 100 150 1]
+  , bricks = [Brick -100 100 1 True False False,
+              Brick 0 100 1 True False False, 
+              Brick 100 100 1 True False False,
+              Brick -100 150 1 True False False, 
+              Brick 0 150 1 True False False, 
+              Brick 100 150 1 True False False]
   }
 
 
@@ -118,23 +128,53 @@ updateBall t ({x,y,vx,vy} as ball) p1 bricks =
       { ball |
           vx <- stepVx vx vy (x < 7-halfWidth)(x > halfWidth-7),
           vy <- stepVy vx vy (y < 7-halfHeight) (y > halfHeight-7)
-                ( x >= p1.x - 40 && x<= p1.x +40 && y >= -155 && y <= -145)
-                (brickCollision bricks ball)
+                   ( x >= p1.x - 40 
+                  && x <= p1.x + 40 
+                  && y >= -155 
+                  && y <= -145)
+                (brickCollision bricks ball isCollidingBrickFunction emptyCollidingBrickFunction)
+                (brickCollision bricks ball brickSpecialMultiplierFunction emptyBrickSpecialMultiplierFunction)
+                ball
+          slowmo <-
+          speedup <-
+          bigball <-
       }
 
-brickCollision : List(Brick) -> Ball -> Bool
-brickCollision bricks ball = case bricks of
-                              [] -> False
-                              brick::bricks -> if (ball.x >= brick.x - 40 && ball.x<= brick.x + 40 && ball.y >= brick.y - 40 && brick.y <= ball.y + 40)
-                                then True
-                                else brickCollision bricks ball
+
+brickCollision bricks ball function empty = 
+case bricks of
+    [] -> empty []
+    brick::bricks -> if (inRange ball brick)
+                        then function brick
+                     else 
+                        brickCollision bricks ball function empty
+                        
+inRange ball brick = (ball.x >= brick.x - 40 
+                   && ball.x<= brick.x + 40 
+                   && ball.y >= brick.y - 40 
+                   && brick.y <= ball.y + 40)
+
+isCollidingBrickFunction : Brick -> Bool
+isCollidingBrickFunction brick = True
+
+emptyCollidingBrickFunction [] = False 
+
+emptyBrickSpecialMultiplierFunction [] = 1
+
+brickSpecialMultiplierFunction : Brick -> Float
+brickSpecialMultiplierFunction brick = if  | brick.slowmo ->
+                                              0.7
+                                           | brick.speedup ->
+                                              1.2
+                                           | otherwise ->
+                                              1
 
 countBricks bricks = case bricks of
                               [] -> 0
                               brick::bricks -> 1 + countBricks bricks
 
 updateBricks : Time -> List(Brick) -> Ball -> List(Brick)
-updateBricks delta bricks ball = foldBrick ball bricks
+updateBricks delta bricks ball = filterBrick ball bricks
 
 
 physicsUpdate t ({x,y,vx,vy} as obj) =
@@ -161,12 +201,13 @@ updatePlayer t dir points player =
         score <- player.score + points
     }
 
-foldBrick : Ball -> List(Brick) -> List(Brick)
-foldBrick ball bricks = case bricks of
+filterBrick : Ball -> List(Brick) -> List(Brick)
+filterBrick ball bricks = case bricks of
               [] -> []
               brick::bricks -> if (near brick.x 40 ball.x && near brick.y 40 ball.y)
-                then bricks
-                else brick::foldBrick ball bricks
+                  then bricks
+                  else 
+                  brick::filterBrick ball bricks
 
 
 near k c n =
@@ -183,9 +224,11 @@ stepVx vx vy leftCollision rightCollision =
       | otherwise ->
           vx
 
-stepVy vx vy leftCollision rightCollision playerCollision brickCollision =
+stepVy vx vy leftCollision rightCollision playerCollision brickCollision specialBlock ball =
   if  | playerCollision ->
           -1* vy
+      | brickCollision && not ball.slowMotion ->
+          -1* vy * specialBlock
       | brickCollision ->
           -1* vy
       | leftCollision ->

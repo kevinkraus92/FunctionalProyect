@@ -11,12 +11,12 @@ import Debug
 
 -- MODEL
 
-(gameWidth,gameHeight) = (400,400)
-(halfWidth,halfHeight) = (200,200)
-
+(gameWidth,gameHeight) = (400,600)
+(halfWidth,halfHeight) = (200,300)
+(xLeftProximity,xRightProximity) = (-40, 40)
+(yLowerProximity, yUpperProximity) = (-5, 5)
 
 type State = Play | Pause | Won | Lost
-
 
 type alias Ball =
   { x : Float
@@ -27,7 +27,6 @@ type alias Ball =
   , bigball : Bool
   , speedup: Bool
   }
-
 
 type alias Player =
   { x : Float
@@ -46,7 +45,6 @@ type alias Brick =
   , speedup: Bool
   }
 
-
 type alias Game =
   { state : State
   , ball : Ball
@@ -54,26 +52,22 @@ type alias Game =
   , bricks: List(Brick)
   }
 
-
 player : Float -> Player
 player x =
-  Player x -150 0 0 0
-
+  Player x -250 0 0 0
 
 defaultGame : Game
 defaultGame =
   { state = Pause
   , ball = Ball 0 0 200 200 False False False
-  , player = player (20 - halfWidth)
+  , player = player 0
   , bricks = [Brick -100 100 1 True False False,
-              Brick 0 100 1 True False False, 
-              Brick 100 100 1 True False False,
-              Brick -100 150 1 True False False, 
-              Brick 0 150 1 True False False, 
-              Brick 100 150 1 True False False]
+              Brick 0 100 1 False True False, 
+              Brick 100 100 1 False False True,
+              Brick -100 250 1 False False False, 
+              Brick 0 250 1 False False False, 
+              Brick 100 250 1 False False False]
   }
-
-
 
 type alias Input =
   { space : Bool
@@ -98,7 +92,7 @@ update {space,dir1, delta} ({state,ball,player,bricks} as game) =
           | 0 == (countBricks bricks) ->
               Won
 
-          | (ball.y < 7-halfHeight) ->
+          | (ball.y < -280) ->
               Lost
 
           | otherwise ->
@@ -117,10 +111,8 @@ update {space,dir1, delta} ({state,ball,player,bricks} as game) =
         bricks <- newBricks
     }
 
-
-
 updateBall : Time -> Ball -> Player -> List(Brick)-> Ball
-updateBall t ({x,y,vx,vy} as ball) p1 bricks =
+updateBall t ({x,y,vx,vy, slowmo} as ball) p1 bricks =
   if not (ball.x |> near 0 halfWidth) then
     { ball | x <- 0, y <- 0 }
   else
@@ -128,31 +120,26 @@ updateBall t ({x,y,vx,vy} as ball) p1 bricks =
       { ball |
           vx <- stepVx vx vy (x < 7-halfWidth)(x > halfWidth-7),
           vy <- stepVy vx vy (y < 7-halfHeight) (y > halfHeight-7)
-                   ( x >= p1.x - 40 
-                  && x <= p1.x + 40 
-                  && y >= -155 
-                  && y <= -145)
+                   ( x >= p1.x + xLeftProximity 
+                  && x <= p1.x + xRightProximity 
+                  && y >= p1.y - 5 
+                  && y <= p1.y + 5)
                 (brickCollision bricks ball isCollidingBrickFunction emptyCollidingBrickFunction)
                 (brickCollision bricks ball brickSpecialMultiplierFunction emptyBrickSpecialMultiplierFunction)
                 ball
-          slowmo <-
-          speedup <-
-          bigball <-
       }
 
+brickCollision bricks ball function empty = case bricks of  
+                                              [] -> empty []
+                                              brick::bricks -> if (inRange ball brick)
+                                                                  then function brick
+                                                               else 
+                                                               brickCollision bricks ball function empty
 
-brickCollision bricks ball function empty = 
-case bricks of
-    [] -> empty []
-    brick::bricks -> if (inRange ball brick)
-                        then function brick
-                     else 
-                        brickCollision bricks ball function empty
-                        
-inRange ball brick = (ball.x >= brick.x - 40 
-                   && ball.x<= brick.x + 40 
-                   && ball.y >= brick.y - 40 
-                   && brick.y <= ball.y + 40)
+inRange obj1 obj2 = (obj1.x >= obj2.x + xLeftProximity 
+                   && obj1.x<= obj2.x + xRightProximity 
+                   && obj1.y >= obj2.y + yLowerProximity 
+                   && obj2.y <= obj1.y + yUpperProximity)
 
 isCollidingBrickFunction : Brick -> Bool
 isCollidingBrickFunction brick = True
@@ -163,9 +150,9 @@ emptyBrickSpecialMultiplierFunction [] = 1
 
 brickSpecialMultiplierFunction : Brick -> Float
 brickSpecialMultiplierFunction brick = if  | brick.slowmo ->
-                                              0.7
+                                              0.5
                                            | brick.speedup ->
-                                              1.2
+                                              1.3
                                            | otherwise ->
                                               1
 
@@ -175,7 +162,6 @@ countBricks bricks = case bricks of
 
 updateBricks : Time -> List(Brick) -> Ball -> List(Brick)
 updateBricks delta bricks ball = filterBrick ball bricks
-
 
 physicsUpdate t ({x,y,vx,vy} as obj) =
   { obj |
@@ -189,7 +175,6 @@ physicsUpdatePlayer t ({x,y,vx,vy} as obj) =
       y <- y + vy * t
   }
 
-
 updatePlayer : Time -> Int -> Int -> Player -> Player
 updatePlayer t dir points player =
   let
@@ -197,24 +182,21 @@ updatePlayer t dir points player =
       Debug.watch "p_aux" (physicsUpdatePlayer  t { player | vx <- toFloat dir * 200 })
   in
     { player_aux |
-        x <- clamp (22-halfHeight) (halfHeight-22) player_aux.x,
+        x <- clamp (140-halfHeight) (halfHeight-140) player_aux.x,
         score <- player.score + points
     }
 
 filterBrick : Ball -> List(Brick) -> List(Brick)
 filterBrick ball bricks = case bricks of
               [] -> []
-              brick::bricks -> if (near brick.x 40 ball.x && near brick.y 40 ball.y)
+              brick::bricks -> if (inRange ball brick)
                   then bricks
                   else 
                   brick::filterBrick ball bricks
 
 
-near k c n =
-  n >= k-c && n <= k+c
-
-within ball paddle =
-  near paddle.x 80 ball.x && near paddle.y 40 ball.y
+near punto rango nuevopunto =
+  nuevopunto >= punto-rango && nuevopunto <= punto+rango
 
 stepVx vx vy leftCollision rightCollision =
   if  | leftCollision ->
@@ -224,16 +206,16 @@ stepVx vx vy leftCollision rightCollision =
       | otherwise ->
           vx
 
-stepVy vx vy leftCollision rightCollision playerCollision brickCollision specialBlock ball =
+stepVy vx vy upperCollision lowerCollision playerCollision brickCollision specialBlock ball =
   if  | playerCollision ->
           -1* vy
-      | brickCollision && not ball.slowMotion ->
+      | brickCollision && not ball.slowmo ->
           -1* vy * specialBlock
       | brickCollision ->
           -1* vy
-      | leftCollision ->
+      | upperCollision ->
           abs vy
-      | rightCollision ->
+      | lowerCollision ->
           -(abs vy)
       | otherwise ->
           vy
@@ -251,25 +233,22 @@ view (w,h) {state,ball,player,bricks} =
     container w h middle <|
     collage gameWidth gameHeight
       ([ rect gameWidth gameHeight
-          |> filled pongGreen
+          |> filled pong
       , oval 15 15
           |> make ball
       , rect 80 10
           |> make player
 
-      , toForm (if state == Play then spacer 1 1
-                else if state == Won then
-                  txt identity msgWon
-                else if state == Lost then
-                  txt identity msgLost
-                else
-                  txt identity msg)
-          |> move (0, 40 - gameHeight/2)
+      , toForm (if | state == Play -> spacer 1 1
+                   | state == Won -> txt identity msgWon
+                   | state == Lost -> txt identity msgLost
+                   | otherwise -> txt identity msg)
+          |> move (0, 200 - gameHeight/2)
       ]++ (rect 50 10
           |> makeList bricks))
 
 
-pongGreen =
+pong =
   rgb 0 0 0
 
 
@@ -285,7 +264,10 @@ txt f string =
     |> leftAligned
 
 
-msg = "SPACE to start, &larr;&rarr; to move"
+msg = "SPACE to start, &larr;&rarr; to move . 
+Rojo - slowmotion. 
+Azul - pelota grande. 
+Verde - pelota rapida"
 msgWon = "Won"
 msgLost = "Lost"
 
@@ -299,10 +281,14 @@ makeList objlist shape =
  case objlist of
         [] -> []
         o::obj -> (shape
-                        |> filled blue
+                        |> asignColor o
                         |> move (o.x,o.y)
                   ) :: makeList obj shape
 
+asignColor brick = if | brick.slowmo -> filled red
+                      | brick.speedup -> filled green 
+                      | brick.bigball -> filled blue
+                      | otherwise -> filled white
 
 -- SIGNALS
 

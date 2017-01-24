@@ -3141,6 +3141,9 @@ Elm.Main.make = function (_elm) {
    var delta = A2($Signal.map,
    $Time.inSeconds,
    $Time.fps(35));
+   var asignColor = function (brick) {
+      return brick.slowmo ? $Graphics$Collage.filled($Color.red) : brick.speedup ? $Graphics$Collage.filled($Color.green) : brick.bigball ? $Graphics$Collage.filled($Color.blue) : $Graphics$Collage.filled($Color.white);
+   };
    var makeList = F2(function (objlist,
    shape) {
       return function () {
@@ -3149,12 +3152,12 @@ Elm.Main.make = function (_elm) {
             return A2($List._op["::"],
               $Graphics$Collage.move({ctor: "_Tuple2"
                                      ,_0: objlist._0.x
-                                     ,_1: objlist._0.y})($Graphics$Collage.filled($Color.blue)(shape)),
+                                     ,_1: objlist._0.y})(asignColor(objlist._0)(shape)),
               A2(makeList,objlist._1,shape));
             case "[]":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 294 and 299");
+         "between lines 281 and 286");
       }();
    });
    var make = F2(function (obj,
@@ -3165,7 +3168,7 @@ Elm.Main.make = function (_elm) {
    });
    var msgLost = "Lost";
    var msgWon = "Won";
-   var msg = "SPACE to start, &larr;&rarr; to move";
+   var msg = "SPACE to start, &larr;&rarr; to move . \nRojo - slowmotion. \nAzul - pelota grande. \nVerde - pelota rapida";
    var textGreen = A3($Color.rgb,
    160,
    200,
@@ -3174,19 +3177,16 @@ Elm.Main.make = function (_elm) {
    string) {
       return $Graphics$Element.leftAligned(f($Text.monospace($Text.color(textGreen)($Text.fromString(string)))));
    });
-   var pongGreen = A3($Color.rgb,
-   0,
-   0,
-   0);
+   var pong = A3($Color.rgb,0,0,0);
    var stepVy = F8(function (vx,
    vy,
-   leftCollision,
-   rightCollision,
+   upperCollision,
+   lowerCollision,
    playerCollision,
    brickCollision,
    specialBlock,
    ball) {
-      return playerCollision ? -1 * vy : brickCollision && $Basics.not(ball.slowMotion) ? -1 * vy * specialBlock : brickCollision ? -1 * vy : leftCollision ? $Basics.abs(vy) : rightCollision ? 0 - $Basics.abs(vy) : vy;
+      return playerCollision ? -1 * vy : brickCollision && $Basics.not(ball.slowmo) ? -1 * vy * specialBlock : brickCollision ? -1 * vy : upperCollision ? $Basics.abs(vy) : lowerCollision ? 0 - $Basics.abs(vy) : vy;
    });
    var stepVx = F4(function (vx,
    vy,
@@ -3194,64 +3194,30 @@ Elm.Main.make = function (_elm) {
    rightCollision) {
       return leftCollision ? $Basics.abs(vx) : rightCollision ? 0 - $Basics.abs(vx) : vx;
    });
-   var near = F3(function (k,c,n) {
-      return _U.cmp(n,
-      k - c) > -1 && _U.cmp(n,
-      k + c) < 1;
-   });
-   var within = F2(function (ball,
-   paddle) {
-      return A3(near,
-      paddle.x,
-      80,
-      ball.x) && A3(near,
-      paddle.y,
-      40,
-      ball.y);
-   });
-   var filterBrick = F2(function (ball,
-   bricks) {
-      return function () {
-         switch (bricks.ctor)
-         {case "::": return A3(near,
-              bricks._0.x,
-              40,
-              ball.x) && A3(near,
-              bricks._0.y,
-              40,
-              ball.y) ? bricks._1 : A2($List._op["::"],
-              bricks._0,
-              A2(filterBrick,ball,bricks._1));
-            case "[]":
-            return _L.fromArray([]);}
-         _U.badCase($moduleName,
-         "between lines 200 and 205");
-      }();
+   var near = F3(function (punto,
+   rango,
+   nuevopunto) {
+      return _U.cmp(nuevopunto,
+      punto - rango) > -1 && _U.cmp(nuevopunto,
+      punto + rango) < 1;
    });
    var physicsUpdatePlayer = F2(function (t,
-   _v6) {
+   _v3) {
       return function () {
          return _U.replace([["x"
-                            ,_v6.x + _v6.vx * t]
-                           ,["y",_v6.y + _v6.vy * t]],
-         _v6);
+                            ,_v3.x + _v3.vx * t]
+                           ,["y",_v3.y + _v3.vy * t]],
+         _v3);
       }();
    });
    var physicsUpdate = F2(function (t,
-   _v8) {
+   _v5) {
       return function () {
          return _U.replace([["x"
-                            ,_v8.x + _v8.vx * t]
-                           ,["y",_v8.y + _v8.vy * t]],
-         _v8);
+                            ,_v5.x + _v5.vx * t]
+                           ,["y",_v5.y + _v5.vy * t]],
+         _v5);
       }();
-   });
-   var updateBricks = F3(function (delta,
-   bricks,
-   ball) {
-      return A2(filterBrick,
-      ball,
-      bricks);
    });
    var countBricks = function (bricks) {
       return function () {
@@ -3260,58 +3226,31 @@ Elm.Main.make = function (_elm) {
             return 1 + countBricks(bricks._1);
             case "[]": return 0;}
          _U.badCase($moduleName,
-         "between lines 167 and 169");
+         "between lines 159 and 161");
       }();
    };
    var brickSpecialMultiplierFunction = function (brick) {
-      return brick.slowmo ? 0.7 : brick.speedup ? 1.2 : 1;
+      return brick.slowmo ? 0.5 : brick.speedup ? 1.3 : 1;
    };
-   var emptyBrickSpecialMultiplierFunction = function (_v13) {
+   var emptyBrickSpecialMultiplierFunction = function (_v10) {
       return function () {
-         switch (_v13.ctor)
+         switch (_v10.ctor)
          {case "[]": return 1;}
          _U.badCase($moduleName,
-         "on line 157, column 42 to 43");
+         "on line 149, column 42 to 43");
       }();
    };
-   var emptyCollidingBrickFunction = function (_v15) {
+   var emptyCollidingBrickFunction = function (_v12) {
       return function () {
-         switch (_v15.ctor)
+         switch (_v12.ctor)
          {case "[]": return false;}
          _U.badCase($moduleName,
-         "on line 155, column 34 to 39");
+         "on line 147, column 34 to 39");
       }();
    };
    var isCollidingBrickFunction = function (brick) {
       return true;
    };
-   var inRange = F2(function (ball,
-   brick) {
-      return _U.cmp(ball.x,
-      brick.x - 40) > -1 && (_U.cmp(ball.x,
-      brick.x + 40) < 1 && (_U.cmp(ball.y,
-      brick.y - 40) > -1 && _U.cmp(brick.y,
-      ball.y + 40) < 1));
-   });
-   var brickCollision = F4(function (bricks,
-   ball,
-   $function,
-   empty) {
-      return function () {
-         switch (bricks.ctor)
-         {case "::": return A2(inRange,
-              ball,
-              bricks._0) ? $function(bricks._0) : A4(brickCollision,
-              bricks._1,
-              ball,
-              $function,
-              empty);
-            case "[]":
-            return empty(_L.fromArray([]));}
-         _U.badCase($moduleName,
-         "between lines 141 and 146");
-      }();
-   });
    var Input = F3(function (a,
    b,
    c) {
@@ -3368,7 +3307,7 @@ Elm.Main.make = function (_elm) {
    var player = function (x) {
       return A5(Player,
       x,
-      -150,
+      -250,
       0,
       0,
       0);
@@ -3381,8 +3320,8 @@ Elm.Main.make = function (_elm) {
    f,
    g) {
       return {_: {}
-             ,bigBall: f
-             ,slowMotion: e
+             ,bigball: f
+             ,slowmo: e
              ,speedup: g
              ,vx: c
              ,vy: d
@@ -3392,12 +3331,6 @@ Elm.Main.make = function (_elm) {
    var Lost = {ctor: "Lost"};
    var Won = {ctor: "Won"};
    var Pause = {ctor: "Pause"};
-   var Play = {ctor: "Play"};
-   var $ = {ctor: "_Tuple2"
-           ,_0: 200
-           ,_1: 200},
-   halfWidth = $._0,
-   halfHeight = $._1;
    var defaultGame = {_: {}
                      ,ball: A7(Ball,
                      0,
@@ -3418,39 +3351,104 @@ Elm.Main.make = function (_elm) {
                                            0,
                                            100,
                                            1,
-                                           true,
                                            false,
+                                           true,
                                            false)
                                            ,A6(Brick,
                                            100,
                                            100,
                                            1,
-                                           true,
                                            false,
-                                           false)
+                                           false,
+                                           true)
                                            ,A6(Brick,
                                            -100,
-                                           150,
+                                           250,
                                            1,
-                                           true,
+                                           false,
                                            false,
                                            false)
                                            ,A6(Brick,
                                            0,
-                                           150,
+                                           250,
                                            1,
-                                           true,
+                                           false,
                                            false,
                                            false)
                                            ,A6(Brick,
                                            100,
-                                           150,
+                                           250,
                                            1,
-                                           true,
+                                           false,
                                            false,
                                            false)])
-                     ,player: player(20 - halfWidth)
+                     ,player: player(0)
                      ,state: Pause};
+   var Play = {ctor: "Play"};
+   var $ = {ctor: "_Tuple2"
+           ,_0: -5
+           ,_1: 5},
+   yLowerProximity = $._0,
+   yUpperProximity = $._1;
+   var $ = {ctor: "_Tuple2"
+           ,_0: -40
+           ,_1: 40},
+   xLeftProximity = $._0,
+   xRightProximity = $._1;
+   var inRange = F2(function (obj1,
+   obj2) {
+      return _U.cmp(obj1.x,
+      obj2.x + xLeftProximity) > -1 && (_U.cmp(obj1.x,
+      obj2.x + xRightProximity) < 1 && (_U.cmp(obj1.y,
+      obj2.y + yLowerProximity) > -1 && _U.cmp(obj2.y,
+      obj1.y + yUpperProximity) < 1));
+   });
+   var brickCollision = F4(function (bricks,
+   ball,
+   $function,
+   empty) {
+      return function () {
+         switch (bricks.ctor)
+         {case "::": return A2(inRange,
+              ball,
+              bricks._0) ? $function(bricks._0) : A4(brickCollision,
+              bricks._1,
+              ball,
+              $function,
+              empty);
+            case "[]":
+            return empty(_L.fromArray([]));}
+         _U.badCase($moduleName,
+         "between lines 132 and 137");
+      }();
+   });
+   var filterBrick = F2(function (ball,
+   bricks) {
+      return function () {
+         switch (bricks.ctor)
+         {case "::": return A2(inRange,
+              ball,
+              bricks._0) ? bricks._1 : A2($List._op["::"],
+              bricks._0,
+              A2(filterBrick,ball,bricks._1));
+            case "[]":
+            return _L.fromArray([]);}
+         _U.badCase($moduleName,
+         "between lines 190 and 195");
+      }();
+   });
+   var updateBricks = F3(function (delta,
+   bricks,
+   ball) {
+      return A2(filterBrick,
+      ball,
+      bricks);
+   });
+   var $ = {ctor: "_Tuple2"
+           ,_0: 200
+           ,_1: 300},
+   halfWidth = $._0,
+   halfHeight = $._1;
    var updateBall = F4(function (t,
    _v20,
    p1,
@@ -3480,10 +3478,10 @@ Elm.Main.make = function (_elm) {
                      _U.cmp(_v20.y,
                      halfHeight - 7) > 0,
                      _U.cmp(_v20.x,
-                     p1.x - 40) > -1 && (_U.cmp(_v20.x,
-                     p1.x + 40) < 1 && (_U.cmp(_v20.y,
-                     -155) > -1 && _U.cmp(_v20.y,
-                     -145) < 1)),
+                     p1.x + xLeftProximity) > -1 && (_U.cmp(_v20.x,
+                     p1.x + xRightProximity) < 1 && (_U.cmp(_v20.y,
+                     p1.y - 5) > -1 && _U.cmp(_v20.y,
+                     p1.y + 5) < 1)),
                      A4(brickCollision,
                      bricks,
                      _v20,
@@ -3512,8 +3510,8 @@ Elm.Main.make = function (_elm) {
          player)));
          return _U.replace([["x"
                             ,A3($Basics.clamp,
-                            22 - halfHeight,
-                            halfHeight - 22,
+                            140 - halfHeight,
+                            halfHeight - 140,
                             player_aux.x)]
                            ,["score"
                             ,player.score + points]],
@@ -3541,7 +3539,7 @@ Elm.Main.make = function (_elm) {
                Play) ? Pause : _v22.space && _U.eq(_v23.state,
                Pause) ? Play : _U.eq(0,
                countBricks(_v23.bricks)) ? Won : _U.cmp(_v23.ball.y,
-               7 - halfHeight) < 0 ? Lost : _v23.state;
+               -280) < 0 ? Lost : _v23.state;
                var score1 = 0;
                return _U.replace([["state"
                                   ,newState]
@@ -3564,7 +3562,7 @@ Elm.Main.make = function (_elm) {
    input);
    var $ = {ctor: "_Tuple2"
            ,_0: 400
-           ,_1: 400},
+           ,_1: 600},
    gameWidth = $._0,
    gameHeight = $._1;
    var view = F2(function (_v26,
@@ -3584,7 +3582,7 @@ Elm.Main.make = function (_elm) {
                     gameWidth,
                     gameHeight,
                     A2($Basics._op["++"],
-                    _L.fromArray([$Graphics$Collage.filled(pongGreen)(A2($Graphics$Collage.rect,
+                    _L.fromArray([$Graphics$Collage.filled(pong)(A2($Graphics$Collage.rect,
                                  gameWidth,
                                  gameHeight))
                                  ,make(_v27.ball)(A2($Graphics$Collage.oval,
@@ -3595,7 +3593,7 @@ Elm.Main.make = function (_elm) {
                                  10))
                                  ,$Graphics$Collage.move({ctor: "_Tuple2"
                                                          ,_0: 0
-                                                         ,_1: 40 - gameHeight / 2})($Graphics$Collage.toForm(_U.eq(_v27.state,
+                                                         ,_1: 200 - gameHeight / 2})($Graphics$Collage.toForm(_U.eq(_v27.state,
                                  Play) ? A2($Graphics$Element.spacer,
                                  1,
                                  1) : _U.eq(_v27.state,
@@ -3612,7 +3610,7 @@ Elm.Main.make = function (_elm) {
                     10)))));
                  }();}
             _U.badCase($moduleName,
-            "between lines 241 and 264");
+            "between lines 228 and 248");
          }();
       }();
    });
@@ -3625,6 +3623,10 @@ Elm.Main.make = function (_elm) {
                       ,gameWidth: gameWidth
                       ,halfHeight: halfHeight
                       ,halfWidth: halfWidth
+                      ,xLeftProximity: xLeftProximity
+                      ,xRightProximity: xRightProximity
+                      ,yLowerProximity: yLowerProximity
+                      ,yUpperProximity: yUpperProximity
                       ,Play: Play
                       ,Pause: Pause
                       ,Won: Won
@@ -3651,11 +3653,10 @@ Elm.Main.make = function (_elm) {
                       ,updatePlayer: updatePlayer
                       ,filterBrick: filterBrick
                       ,near: near
-                      ,within: within
                       ,stepVx: stepVx
                       ,stepVy: stepVy
                       ,view: view
-                      ,pongGreen: pongGreen
+                      ,pong: pong
                       ,textGreen: textGreen
                       ,txt: txt
                       ,msg: msg
@@ -3663,6 +3664,7 @@ Elm.Main.make = function (_elm) {
                       ,msgLost: msgLost
                       ,make: make
                       ,makeList: makeList
+                      ,asignColor: asignColor
                       ,main: main
                       ,gameState: gameState
                       ,delta: delta

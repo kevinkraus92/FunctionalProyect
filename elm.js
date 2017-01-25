@@ -3142,7 +3142,7 @@ Elm.Main.make = function (_elm) {
    $Time.inSeconds,
    $Time.fps(35));
    var asignColor = function (brick) {
-      return brick.slowmo ? $Graphics$Collage.filled($Color.red) : brick.speedup ? $Graphics$Collage.filled($Color.green) : brick.bigball ? $Graphics$Collage.filled($Color.blue) : $Graphics$Collage.filled($Color.white);
+      return brick.slowmo ? $Graphics$Collage.filled($Color.red) : brick.speedup ? $Graphics$Collage.filled($Color.green) : brick.bigball ? $Graphics$Collage.filled($Color.blue) : brick.bigpad ? $Graphics$Collage.filled($Color.yellow) : $Graphics$Collage.filled($Color.white);
    };
    var makeList = F2(function (objlist,
    shape) {
@@ -3157,7 +3157,7 @@ Elm.Main.make = function (_elm) {
             case "[]":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 342 and 347");
+         "between lines 336 and 341");
       }();
    });
    var make = F2(function (obj,
@@ -3169,7 +3169,7 @@ Elm.Main.make = function (_elm) {
    var msgNextLevel = "Next level";
    var msgLost = "Lost";
    var msgWon = "Won";
-   var msg = "SPACE to start, &larr;&rarr; to move . \nRojo - slowmotion. \nAzul - pelota grande. \nVerde - pelota rapida";
+   var msg = "SPACE to start, &larr;&rarr; to move . \nRojo - slowmotion. \nAzul - pelota grande. \nVerde - pelota rapida\nAmarillo - paleta grande";
    var textGreen = A3($Color.rgb,
    160,
    200,
@@ -3227,47 +3227,69 @@ Elm.Main.make = function (_elm) {
             return 1 + countBricks(bricks._1);
             case "[]": return 0;}
          _U.badCase($moduleName,
-         "between lines 217 and 219");
+         "between lines 208 and 210");
       }();
    };
-   var isCollidingBigBallBrickFunction = F2(function (brick,
-   ball) {
-      return ball.bigball || brick.bigball;
+   var bigPadFunction = F3(function (brick,
+   ball,
+   player) {
+      return brick.bigpad;
    });
-   var brickSpecialMultiplierFunction = F2(function (brick,
-   ball) {
-      return brick.slowmo ? 0.5 : brick.speedup ? 2.0 : 1;
-   });
-   var emptyCollidingBigballBrickFunction = F2(function (_v10,
-   ball) {
+   var emptyBigPadFunction = F3(function (_v10,
+   ball,
+   player) {
       return function () {
          switch (_v10.ctor)
          {case "[]":
-            return ball.bigball;}
+            return player.bigpad;}
          _U.badCase($moduleName,
-         "on line 204, column 46 to 58");
+         "on line 205, column 38 to 51");
       }();
    });
-   var emptyBrickSpecialMultiplierFunction = F2(function (_v12,
-   ball) {
+   var isCollidingBigBallBrickFunction = F3(function (brick,
+   ball,
+   player) {
+      return ball.bigball || brick.bigball;
+   });
+   var brickSpecialMultiplierFunction = F3(function (brick,
+   ball,
+   player) {
+      return brick.slowmo ? 0.5 : brick.speedup ? 2.0 : 1;
+   });
+   var emptyCollidingBigballBrickFunction = F3(function (_v12,
+   ball,
+   player) {
       return function () {
          switch (_v12.ctor)
-         {case "[]": return 1;}
+         {case "[]":
+            return ball.bigball;}
          _U.badCase($moduleName,
-         "on line 202, column 47 to 48");
+         "on line 192, column 53 to 65");
       }();
    });
-   var emptyCollidingBrickFunction = F2(function (_v14,
-   ball) {
+   var emptyBrickSpecialMultiplierFunction = F3(function (_v14,
+   ball,
+   player) {
       return function () {
          switch (_v14.ctor)
-         {case "[]": return false;}
+         {case "[]": return 1;}
          _U.badCase($moduleName,
-         "on line 200, column 39 to 44");
+         "on line 190, column 54 to 55");
       }();
    });
-   var isCollidingBrickFunction = F2(function (brick,
-   ball) {
+   var emptyCollidingBrickFunction = F3(function (_v16,
+   ball,
+   player) {
+      return function () {
+         switch (_v16.ctor)
+         {case "[]": return false;}
+         _U.badCase($moduleName,
+         "on line 188, column 46 to 51");
+      }();
+   });
+   var isCollidingBrickFunction = F3(function (brick,
+   ball,
+   player) {
       return true;
    });
    var Input = F3(function (a,
@@ -3299,26 +3321,30 @@ Elm.Main.make = function (_elm) {
              ,player: c
              ,state: a};
    });
-   var Brick = F6(function (a,
+   var Brick = F7(function (a,
+   b,
+   c,
+   d,
+   e,
+   f,
+   g) {
+      return {_: {}
+             ,active: c
+             ,bigball: e
+             ,bigpad: g
+             ,slowmo: d
+             ,speedup: f
+             ,x: a
+             ,y: b};
+   });
+   var Player = F6(function (a,
    b,
    c,
    d,
    e,
    f) {
       return {_: {}
-             ,active: c
-             ,bigball: e
-             ,slowmo: d
-             ,speedup: f
-             ,x: a
-             ,y: b};
-   });
-   var Player = F5(function (a,
-   b,
-   c,
-   d,
-   e) {
-      return {_: {}
+             ,bigpad: f
              ,score: e
              ,vx: c
              ,vy: d
@@ -3326,12 +3352,13 @@ Elm.Main.make = function (_elm) {
              ,y: b};
    });
    var player = function (x) {
-      return A5(Player,
+      return A6(Player,
       x,
       -250,
       0,
       0,
-      0);
+      0,
+      false);
    };
    var Ball = F7(function (a,
    b,
@@ -3362,133 +3389,89 @@ Elm.Main.make = function (_elm) {
                      false,
                      false,
                      false)
-                     ,bricks: _L.fromArray([A6(Brick,
+                     ,bricks: _L.fromArray([A7(Brick,
                                            -200,
                                            100,
                                            1,
                                            false,
                                            true,
+                                           false,
                                            false)
-                                           ,A6(Brick,
+                                           ,A7(Brick,
                                            -100,
                                            100,
                                            1,
                                            false,
                                            false,
+                                           false,
                                            false)
-                                           ,A6(Brick,
+                                           ,A7(Brick,
                                            0,
                                            100,
                                            1,
                                            false,
                                            false,
+                                           false,
                                            false)
-                                           ,A6(Brick,
+                                           ,A7(Brick,
                                            100,
                                            100,
                                            1,
                                            false,
                                            false,
+                                           false,
                                            false)
-                                           ,A6(Brick,
+                                           ,A7(Brick,
                                            200,
                                            100,
                                            1,
                                            false,
                                            false,
+                                           false,
                                            false)
-                                           ,A6(Brick,
+                                           ,A7(Brick,
                                            -200,
                                            250,
                                            1,
                                            false,
                                            false,
-                                           false)
-                                           ,A6(Brick,
+                                           false,
+                                           true)
+                                           ,A7(Brick,
                                            -100,
                                            250,
                                            1,
                                            false,
                                            false,
+                                           true,
                                            false)
-                                           ,A6(Brick,
+                                           ,A7(Brick,
                                            0,
                                            250,
                                            1,
                                            true,
                                            false,
+                                           false,
                                            false)
-                                           ,A6(Brick,
+                                           ,A7(Brick,
                                            100,
                                            250,
                                            1,
                                            false,
                                            false,
+                                           false,
                                            false)
-                                           ,A6(Brick,
+                                           ,A7(Brick,
                                            200,
                                            250,
                                            1,
+                                           false,
                                            false,
                                            false,
                                            true)])
                      ,level: 1
                      ,player: player(0)
                      ,state: Pause};
-   var levelTwo = {_: {}
-                  ,ball: A7(Ball,
-                  0,
-                  0,
-                  200,
-                  200,
-                  false,
-                  false,
-                  false)
-                  ,bricks: _L.fromArray([A6(Brick,
-                                        -100,
-                                        100,
-                                        1,
-                                        false,
-                                        false,
-                                        false)
-                                        ,A6(Brick,
-                                        0,
-                                        100,
-                                        1,
-                                        false,
-                                        false,
-                                        false)
-                                        ,A6(Brick,
-                                        0,
-                                        125,
-                                        1,
-                                        false,
-                                        false,
-                                        false)
-                                        ,A6(Brick,
-                                        0,
-                                        150,
-                                        1,
-                                        false,
-                                        false,
-                                        false)
-                                        ,A6(Brick,
-                                        0,
-                                        50,
-                                        1,
-                                        false,
-                                        false,
-                                        true)
-                                        ,A6(Brick,
-                                        100,
-                                        100,
-                                        1,
-                                        false,
-                                        false,
-                                        false)])
-                  ,level: 2
-                  ,player: player(0)
-                  ,state: Pause};
    var Play = {ctor: "Play"};
    var maxLevel = 3;
    var $ = {ctor: "_Tuple2"
@@ -3509,26 +3492,30 @@ Elm.Main.make = function (_elm) {
       obj2.y + yLowerProximity) > -1 && _U.cmp(obj1.y,
       obj2.y + yUpperProximity) < 1));
    });
-   var brickCollision = F4(function (bricks,
+   var brickCollision = F5(function (bricks,
    ball,
+   player,
    $function,
    empty) {
       return function () {
          switch (bricks.ctor)
          {case "::": return A2(inRange,
               ball,
-              bricks._0) ? A2($function,
+              bricks._0) ? A3($function,
               bricks._0,
-              ball) : A4(brickCollision,
+              ball,
+              player) : A5(brickCollision,
               bricks._1,
               ball,
+              player,
               $function,
               empty);
-            case "[]": return A2(empty,
+            case "[]": return A3(empty,
               _L.fromArray([]),
-              ball);}
+              ball,
+              player);}
          _U.badCase($moduleName,
-         "between lines 185 and 190");
+         "between lines 173 and 178");
       }();
    });
    var filterBrick = F2(function (ball,
@@ -3543,7 +3530,7 @@ Elm.Main.make = function (_elm) {
             case "[]":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 248 and 253");
+         "between lines 240 and 245");
       }();
    });
    var updateBricks = F3(function (delta,
@@ -3559,62 +3546,67 @@ Elm.Main.make = function (_elm) {
    halfWidth = $._0,
    halfHeight = $._1;
    var updateBall = F4(function (t,
-   _v22,
+   _v24,
    p1,
    bricks) {
       return function () {
          return $Basics.not(A2(near,
          0,
-         halfWidth)(_v22.x)) ? _U.replace([["x"
+         halfWidth)(_v24.x)) ? _U.replace([["x"
                                            ,0]
                                           ,["y",0]],
-         _v22) : A2(physicsUpdate,
+         _v24) : A2(physicsUpdate,
          t,
          _U.replace([["bigball"
-                     ,A4(brickCollision,
+                     ,A5(brickCollision,
                      bricks,
-                     _v22,
+                     _v24,
+                     p1,
                      isCollidingBigBallBrickFunction,
                      emptyCollidingBigballBrickFunction)]
                     ,["vx"
                      ,A4(stepVx,
-                     _v22.vx,
-                     _v22.vy,
-                     _U.cmp(_v22.x,
+                     _v24.vx,
+                     _v24.vy,
+                     _U.cmp(_v24.x,
                      7 - halfWidth) < 0,
-                     _U.cmp(_v22.x,
+                     _U.cmp(_v24.x,
                      halfWidth - 7) > 0)]
                     ,["vy"
                      ,A8(stepVy,
-                     _v22.vx,
-                     _v22.vy,
-                     _U.cmp(_v22.y,
+                     _v24.vx,
+                     _v24.vy,
+                     _U.cmp(_v24.y,
                      7 - halfHeight) < 0,
-                     _U.cmp(_v22.y,
+                     _U.cmp(_v24.y,
                      halfHeight - 7) > 0,
-                     _U.cmp(_v22.x,
-                     p1.x + xLeftProximity) > -1 && (_U.cmp(_v22.x,
-                     p1.x + xRightProximity) < 1 && (_U.cmp(_v22.y,
-                     p1.y - 10) > -1 && _U.cmp(_v22.y,
+                     _U.cmp(_v24.x,
+                     p1.x + xLeftProximity) > -1 && (_U.cmp(_v24.x,
+                     p1.x + xRightProximity) < 1 && (_U.cmp(_v24.y,
+                     p1.y - 10) > -1 && _U.cmp(_v24.y,
                      p1.y + 10) < 1)),
-                     A4(brickCollision,
+                     A5(brickCollision,
                      bricks,
-                     _v22,
+                     _v24,
+                     p1,
                      isCollidingBrickFunction,
                      emptyCollidingBrickFunction),
-                     A4(brickCollision,
+                     A5(brickCollision,
                      bricks,
-                     _v22,
+                     _v24,
+                     p1,
                      brickSpecialMultiplierFunction,
                      emptyBrickSpecialMultiplierFunction),
-                     _v22)]],
-         _v22));
+                     _v24)]],
+         _v24));
       }();
    });
-   var updatePlayer = F4(function (t,
+   var updatePlayer = F6(function (t,
    dir,
    points,
-   player) {
+   player,
+   bricks,
+   ball) {
       return function () {
          var player_aux = A2($Debug.watch,
          "p_aux",
@@ -3628,144 +3620,165 @@ Elm.Main.make = function (_elm) {
                             60 - halfHeight,
                             halfHeight - 60,
                             player_aux.x)]
-                           ,["score"
-                            ,player.score + points]],
+                           ,["score",player.score + points]
+                           ,["bigpad"
+                            ,A5(brickCollision,
+                            bricks,
+                            ball,
+                            player,
+                            bigPadFunction,
+                            emptyBigPadFunction)]],
          player_aux);
       }();
    });
-   var update = F2(function (_v24,
-   _v25) {
+   var update = F2(function (_v26,
+   _v27) {
       return function () {
          return function () {
             return function () {
-               var newBall = _U.eq(_v25.state,
-               Pause) || (_U.eq(_v25.state,
-               Won) || _U.eq(_v25.state,
-               Lost)) ? _v25.ball : A4(updateBall,
-               _v24.delta,
-               _v25.ball,
-               _v25.player,
-               _v25.bricks);
-               var newStateMoment = _v24.space && _U.eq(_v25.state,
-               Play) ? Pause : _v24.space && _U.eq(_v25.state,
+               var newBall = _U.eq(_v27.state,
+               Pause) || (_U.eq(_v27.state,
+               Won) || _U.eq(_v27.state,
+               Lost)) ? _v27.ball : A4(updateBall,
+               _v26.delta,
+               _v27.ball,
+               _v27.player,
+               _v27.bricks);
+               var newStateMoment = _v26.space && _U.eq(_v27.state,
+               Play) ? Pause : _v26.space && _U.eq(_v27.state,
                Pause) ? Play : _U.eq(0,
-               countBricks(_v25.bricks)) && _U.cmp(_v25.level,
+               countBricks(_v27.bricks)) && _U.cmp(_v27.level,
                maxLevel) < 0 ? WonLevel1 : _U.eq(0,
-               countBricks(_v25.bricks)) && _U.eq(_v25.level,
-               maxLevel) ? Won : _U.cmp(_v25.ball.y,
-               -280) < 0 ? Lost : _v25.state;
+               countBricks(_v27.bricks)) && _U.eq(_v27.level,
+               maxLevel) ? Won : _U.cmp(_v27.ball.y,
+               -280) < 0 ? Lost : _v27.state;
                var newBricks = _U.eq(newStateMoment,
-               WonLevel1) ? _L.fromArray([A6(Brick,
+               WonLevel1) ? _L.fromArray([A7(Brick,
                                          -100,
                                          100,
                                          1,
                                          true,
                                          false,
+                                         false,
                                          false)
-                                         ,A6(Brick,
+                                         ,A7(Brick,
                                          -100,
                                          125,
                                          1,
                                          false,
                                          false,
+                                         false,
                                          false)
-                                         ,A6(Brick,
+                                         ,A7(Brick,
                                          -100,
                                          75,
                                          1,
                                          false,
                                          false,
+                                         false,
                                          false)
-                                         ,A6(Brick,
+                                         ,A7(Brick,
                                          -200,
                                          100,
                                          1,
                                          false,
                                          false,
+                                         false,
                                          false)
-                                         ,A6(Brick,
+                                         ,A7(Brick,
                                          0,
                                          100,
                                          1,
                                          false,
                                          false,
-                                         true)
-                                         ,A6(Brick,
+                                         true,
+                                         false)
+                                         ,A7(Brick,
                                          0,
                                          125,
                                          1,
                                          false,
                                          false,
+                                         false,
                                          false)
-                                         ,A6(Brick,
+                                         ,A7(Brick,
                                          0,
                                          150,
                                          1,
                                          false,
                                          false,
+                                         false,
                                          false)
-                                         ,A6(Brick,
+                                         ,A7(Brick,
                                          0,
                                          75,
                                          1,
                                          false,
                                          false,
+                                         false,
                                          false)
-                                         ,A6(Brick,
+                                         ,A7(Brick,
                                          0,
                                          50,
                                          1,
                                          false,
                                          false,
+                                         false,
                                          false)
-                                         ,A6(Brick,
+                                         ,A7(Brick,
                                          100,
                                          100,
                                          1,
                                          false,
                                          true,
+                                         false,
                                          false)
-                                         ,A6(Brick,
+                                         ,A7(Brick,
                                          100,
                                          125,
                                          1,
                                          false,
                                          false,
+                                         false,
                                          false)
-                                         ,A6(Brick,
+                                         ,A7(Brick,
                                          100,
                                          75,
                                          1,
                                          false,
                                          false,
+                                         false,
                                          false)
-                                         ,A6(Brick,
+                                         ,A7(Brick,
                                          200,
                                          100,
                                          1,
                                          false,
                                          false,
+                                         false,
                                          false)]) : A3(updateBricks,
-               _v24.delta,
-               _v25.bricks,
-               _v25.ball);
+               _v26.delta,
+               _v27.bricks,
+               _v27.ball);
                var newState = _U.eq(newStateMoment,
                WonLevel1) ? Play : newStateMoment;
                var newLevel = _U.eq(newState,
-               WonLevel1) ? _v25.level + 1 : _v25.level;
+               WonLevel1) ? _v27.level + 1 : _v27.level;
                var score1 = 0;
                return _U.replace([["state"
                                   ,newState]
                                  ,["ball",newBall]
                                  ,["player"
-                                  ,A4(updatePlayer,
-                                  _v24.delta,
-                                  _v24.dir1,
+                                  ,A6(updatePlayer,
+                                  _v26.delta,
+                                  _v26.dir1,
                                   score1,
-                                  _v25.player)]
+                                  _v27.player,
+                                  _v27.bricks,
+                                  _v27.ball)]
                                  ,["bricks",newBricks]
                                  ,["level",newLevel]],
-               _v25);
+               _v27);
             }();
          }();
       }();
@@ -3779,19 +3792,19 @@ Elm.Main.make = function (_elm) {
            ,_1: 600},
    gameWidth = $._0,
    gameHeight = $._1;
-   var view = F2(function (_v28,
-   _v29) {
+   var view = F2(function (_v30,
+   _v31) {
       return function () {
          return function () {
-            switch (_v28.ctor)
+            switch (_v30.ctor)
             {case "_Tuple2":
                return function () {
                     var scores = A2(txt,
                     $Text.height(50),
                     "Desarrollado en Elm");
                     return A3($Graphics$Element.container,
-                    _v28._0,
-                    _v28._1,
+                    _v30._0,
+                    _v30._1,
                     $Graphics$Element.middle)(A3($Graphics$Collage.collage,
                     gameWidth,
                     gameHeight,
@@ -3799,38 +3812,40 @@ Elm.Main.make = function (_elm) {
                     _L.fromArray([$Graphics$Collage.filled(pong)(A2($Graphics$Collage.rect,
                                  gameWidth,
                                  gameHeight))
-                                 ,make(_v29.ball)(_v29.ball.bigball ? A2($Graphics$Collage.oval,
+                                 ,make(_v31.ball)(_v31.ball.bigball ? A2($Graphics$Collage.oval,
                                  30,
                                  30) : A2($Graphics$Collage.oval,
                                  15,
                                  15))
-                                 ,make(_v29.player)(A2($Graphics$Collage.rect,
+                                 ,make(_v31.player)(_v31.player.bigpad ? A2($Graphics$Collage.rect,
+                                 120,
+                                 10) : A2($Graphics$Collage.rect,
                                  80,
                                  10))
                                  ,$Graphics$Collage.move({ctor: "_Tuple2"
                                                          ,_0: 0
-                                                         ,_1: 200 - gameHeight / 2})($Graphics$Collage.toForm(_U.eq(_v29.state,
+                                                         ,_1: 200 - gameHeight / 2})($Graphics$Collage.toForm(_U.eq(_v31.state,
                                  Play) ? A2($Graphics$Element.spacer,
                                  1,
-                                 1) : _U.eq(_v29.state,
-                                 Won) && _U.eq(_v29.level,
+                                 1) : _U.eq(_v31.state,
+                                 Won) && _U.eq(_v31.level,
                                  maxLevel) ? A2(txt,
                                  $Basics.identity,
-                                 msgWon) : _U.eq(_v29.state,
+                                 msgWon) : _U.eq(_v31.state,
                                  WonLevel1) ? A2(txt,
                                  $Basics.identity,
-                                 msgNextLevel) : _U.eq(_v29.state,
+                                 msgNextLevel) : _U.eq(_v31.state,
                                  Lost) ? A2(txt,
                                  $Basics.identity,
                                  msgLost) : A2(txt,
                                  $Basics.identity,
                                  msg)))]),
-                    makeList(_v29.bricks)(A2($Graphics$Collage.rect,
+                    makeList(_v31.bricks)(A2($Graphics$Collage.rect,
                     50,
                     10)))));
                  }();}
             _U.badCase($moduleName,
-            "between lines 286 and 308");
+            "between lines 278 and 301");
          }();
       }();
    });
@@ -3859,7 +3874,6 @@ Elm.Main.make = function (_elm) {
                       ,Game: Game
                       ,player: player
                       ,defaultGame: defaultGame
-                      ,levelTwo: levelTwo
                       ,Input: Input
                       ,update: update
                       ,updateBall: updateBall
@@ -3871,6 +3885,8 @@ Elm.Main.make = function (_elm) {
                       ,emptyCollidingBigballBrickFunction: emptyCollidingBigballBrickFunction
                       ,brickSpecialMultiplierFunction: brickSpecialMultiplierFunction
                       ,isCollidingBigBallBrickFunction: isCollidingBigBallBrickFunction
+                      ,emptyBigPadFunction: emptyBigPadFunction
+                      ,bigPadFunction: bigPadFunction
                       ,countBricks: countBricks
                       ,updateBricks: updateBricks
                       ,physicsUpdate: physicsUpdate

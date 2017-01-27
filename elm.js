@@ -3157,7 +3157,7 @@ Elm.Main.make = function (_elm) {
             case "[]":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 336 and 341");
+         "between lines 387 and 392");
       }();
    });
    var make = F2(function (obj,
@@ -3167,7 +3167,7 @@ Elm.Main.make = function (_elm) {
                                     ,_1: obj.y})($Graphics$Collage.filled($Color.white)(shape));
    });
    var msgNextLevel = "Next level";
-   var msgLost = "Lost";
+   var msgLost = "Lost. Press SPACE to restart";
    var msgWon = "Won";
    var msg = "SPACE to start, &larr;&rarr; to move . \nRojo - slowmotion. \nAzul - pelota grande. \nVerde - pelota rapida\nAmarillo - paleta grande";
    var textGreen = A3($Color.rgb,
@@ -3227,7 +3227,7 @@ Elm.Main.make = function (_elm) {
             return 1 + countBricks(bricks._1);
             case "[]": return 0;}
          _U.badCase($moduleName,
-         "between lines 208 and 210");
+         "between lines 259 and 261");
       }();
    };
    var bigPadFunction = F3(function (brick,
@@ -3243,7 +3243,7 @@ Elm.Main.make = function (_elm) {
          {case "[]":
             return player.bigpad;}
          _U.badCase($moduleName,
-         "on line 205, column 38 to 51");
+         "on line 256, column 38 to 51");
       }();
    });
    var isCollidingBigBallBrickFunction = F3(function (brick,
@@ -3264,7 +3264,7 @@ Elm.Main.make = function (_elm) {
          {case "[]":
             return ball.bigball;}
          _U.badCase($moduleName,
-         "on line 192, column 53 to 65");
+         "on line 243, column 53 to 65");
       }();
    });
    var emptyBrickSpecialMultiplierFunction = F3(function (_v14,
@@ -3274,7 +3274,7 @@ Elm.Main.make = function (_elm) {
          switch (_v14.ctor)
          {case "[]": return 1;}
          _U.badCase($moduleName,
-         "on line 190, column 54 to 55");
+         "on line 241, column 54 to 55");
       }();
    });
    var emptyCollidingBrickFunction = F3(function (_v16,
@@ -3284,13 +3284,17 @@ Elm.Main.make = function (_elm) {
          switch (_v16.ctor)
          {case "[]": return false;}
          _U.badCase($moduleName,
-         "on line 188, column 46 to 51");
+         "on line 239, column 46 to 51");
       }();
    });
    var isCollidingBrickFunction = F3(function (brick,
    ball,
    player) {
       return true;
+   });
+   var collision = F2(function (a,
+   b) {
+      return _U.cmp(a,b) < 0;
    });
    var Input = F3(function (a,
    b,
@@ -3309,6 +3313,7 @@ Elm.Main.make = function (_elm) {
    },
    $Keyboard.arrows),
    delta));
+   var startLevel = 1;
    var Game = F5(function (a,
    b,
    c,
@@ -3337,6 +3342,525 @@ Elm.Main.make = function (_elm) {
              ,x: a
              ,y: b};
    });
+   var level4Bricks = _L.fromArray([A7(Brick,
+                                   -100,
+                                   200,
+                                   1,
+                                   false,
+                                   false,
+                                   true,
+                                   false)
+                                   ,A7(Brick,
+                                   -100,
+                                   125,
+                                   1,
+                                   false,
+                                   true,
+                                   false,
+                                   false)
+                                   ,A7(Brick,
+                                   -100,
+                                   75,
+                                   1,
+                                   false,
+                                   false,
+                                   true,
+                                   false)
+                                   ,A7(Brick,
+                                   -200,
+                                   100,
+                                   1,
+                                   true,
+                                   false,
+                                   false,
+                                   false)
+                                   ,A7(Brick,
+                                   0,
+                                   100,
+                                   1,
+                                   false,
+                                   false,
+                                   true,
+                                   false)
+                                   ,A7(Brick,
+                                   100,
+                                   200,
+                                   1,
+                                   false,
+                                   false,
+                                   true,
+                                   false)
+                                   ,A7(Brick,
+                                   100,
+                                   125,
+                                   1,
+                                   false,
+                                   true,
+                                   false,
+                                   false)
+                                   ,A7(Brick,
+                                   100,
+                                   75,
+                                   1,
+                                   false,
+                                   false,
+                                   true,
+                                   false)
+                                   ,A7(Brick,
+                                   200,
+                                   100,
+                                   1,
+                                   true,
+                                   false,
+                                   false,
+                                   false)]);
+   var level3Bricks = _L.fromArray([A7(Brick,
+                                   -200,
+                                   250,
+                                   1,
+                                   false,
+                                   false,
+                                   true,
+                                   false)
+                                   ,A7(Brick,
+                                   -150,
+                                   250,
+                                   1,
+                                   false,
+                                   false,
+                                   false,
+                                   false)
+                                   ,A7(Brick,
+                                   -100,
+                                   250,
+                                   1,
+                                   false,
+                                   true,
+                                   false,
+                                   false)
+                                   ,A7(Brick,
+                                   -50,
+                                   250,
+                                   1,
+                                   false,
+                                   false,
+                                   false,
+                                   false)
+                                   ,A7(Brick,
+                                   0,
+                                   250,
+                                   1,
+                                   false,
+                                   false,
+                                   false,
+                                   true)
+                                   ,A7(Brick,
+                                   50,
+                                   250,
+                                   1,
+                                   false,
+                                   true,
+                                   false,
+                                   false)
+                                   ,A7(Brick,
+                                   100,
+                                   250,
+                                   1,
+                                   false,
+                                   false,
+                                   true,
+                                   false)
+                                   ,A7(Brick,
+                                   150,
+                                   250,
+                                   1,
+                                   false,
+                                   true,
+                                   false,
+                                   false)
+                                   ,A7(Brick,
+                                   200,
+                                   250,
+                                   1,
+                                   true,
+                                   false,
+                                   false,
+                                   false)
+                                   ,A7(Brick,
+                                   -200,
+                                   150,
+                                   1,
+                                   false,
+                                   false,
+                                   true,
+                                   false)
+                                   ,A7(Brick,
+                                   -150,
+                                   150,
+                                   1,
+                                   false,
+                                   false,
+                                   false,
+                                   false)
+                                   ,A7(Brick,
+                                   -100,
+                                   150,
+                                   1,
+                                   false,
+                                   true,
+                                   false,
+                                   false)
+                                   ,A7(Brick,
+                                   -50,
+                                   150,
+                                   1,
+                                   false,
+                                   false,
+                                   false,
+                                   false)
+                                   ,A7(Brick,
+                                   0,
+                                   150,
+                                   1,
+                                   false,
+                                   false,
+                                   false,
+                                   true)
+                                   ,A7(Brick,
+                                   50,
+                                   150,
+                                   1,
+                                   false,
+                                   true,
+                                   false,
+                                   false)
+                                   ,A7(Brick,
+                                   100,
+                                   150,
+                                   1,
+                                   false,
+                                   false,
+                                   true,
+                                   false)
+                                   ,A7(Brick,
+                                   150,
+                                   150,
+                                   1,
+                                   false,
+                                   true,
+                                   false,
+                                   false)
+                                   ,A7(Brick,
+                                   200,
+                                   150,
+                                   1,
+                                   true,
+                                   false,
+                                   false,
+                                   false)
+                                   ,A7(Brick,
+                                   -200,
+                                   200,
+                                   1,
+                                   false,
+                                   false,
+                                   true,
+                                   false)
+                                   ,A7(Brick,
+                                   -150,
+                                   200,
+                                   1,
+                                   false,
+                                   false,
+                                   false,
+                                   false)
+                                   ,A7(Brick,
+                                   -100,
+                                   200,
+                                   1,
+                                   false,
+                                   true,
+                                   false,
+                                   false)
+                                   ,A7(Brick,
+                                   -50,
+                                   200,
+                                   1,
+                                   false,
+                                   false,
+                                   false,
+                                   false)
+                                   ,A7(Brick,
+                                   0,
+                                   200,
+                                   1,
+                                   false,
+                                   false,
+                                   false,
+                                   true)
+                                   ,A7(Brick,
+                                   50,
+                                   200,
+                                   1,
+                                   false,
+                                   true,
+                                   false,
+                                   false)
+                                   ,A7(Brick,
+                                   100,
+                                   200,
+                                   1,
+                                   false,
+                                   false,
+                                   true,
+                                   false)
+                                   ,A7(Brick,
+                                   150,
+                                   200,
+                                   1,
+                                   false,
+                                   true,
+                                   false,
+                                   false)
+                                   ,A7(Brick,
+                                   200,
+                                   200,
+                                   1,
+                                   true,
+                                   false,
+                                   false,
+                                   false)]);
+   var level5Bricks = _L.fromArray([A7(Brick,
+                                   -100,
+                                   200,
+                                   1,
+                                   false,
+                                   false,
+                                   true,
+                                   false)
+                                   ,A7(Brick,
+                                   -100,
+                                   125,
+                                   1,
+                                   false,
+                                   false,
+                                   false,
+                                   false)
+                                   ,A7(Brick,
+                                   -100,
+                                   75,
+                                   1,
+                                   false,
+                                   false,
+                                   false,
+                                   false)
+                                   ,A7(Brick,
+                                   -200,
+                                   100,
+                                   1,
+                                   false,
+                                   false,
+                                   false,
+                                   false)
+                                   ,A7(Brick,
+                                   0,
+                                   100,
+                                   1,
+                                   false,
+                                   false,
+                                   true,
+                                   false)]);
+   var level2Bricks = _L.fromArray([A7(Brick,
+                                   -100,
+                                   100,
+                                   1,
+                                   true,
+                                   false,
+                                   false,
+                                   false)
+                                   ,A7(Brick,
+                                   -100,
+                                   125,
+                                   1,
+                                   false,
+                                   false,
+                                   false,
+                                   false)
+                                   ,A7(Brick,
+                                   -100,
+                                   75,
+                                   1,
+                                   false,
+                                   false,
+                                   false,
+                                   false)
+                                   ,A7(Brick,
+                                   -200,
+                                   100,
+                                   1,
+                                   false,
+                                   false,
+                                   false,
+                                   false)
+                                   ,A7(Brick,
+                                   0,
+                                   100,
+                                   1,
+                                   false,
+                                   false,
+                                   true,
+                                   false)
+                                   ,A7(Brick,
+                                   0,
+                                   125,
+                                   1,
+                                   false,
+                                   false,
+                                   false,
+                                   false)
+                                   ,A7(Brick,
+                                   0,
+                                   150,
+                                   1,
+                                   false,
+                                   false,
+                                   false,
+                                   false)
+                                   ,A7(Brick,
+                                   0,
+                                   75,
+                                   1,
+                                   false,
+                                   false,
+                                   false,
+                                   false)
+                                   ,A7(Brick,
+                                   0,
+                                   50,
+                                   1,
+                                   false,
+                                   false,
+                                   false,
+                                   false)
+                                   ,A7(Brick,
+                                   100,
+                                   100,
+                                   1,
+                                   false,
+                                   true,
+                                   false,
+                                   false)
+                                   ,A7(Brick,
+                                   100,
+                                   125,
+                                   1,
+                                   false,
+                                   false,
+                                   false,
+                                   false)
+                                   ,A7(Brick,
+                                   100,
+                                   75,
+                                   1,
+                                   false,
+                                   false,
+                                   false,
+                                   false)
+                                   ,A7(Brick,
+                                   200,
+                                   100,
+                                   1,
+                                   false,
+                                   false,
+                                   false,
+                                   false)]);
+   var restartBricks = _L.fromArray([A7(Brick,
+                                    -200,
+                                    100,
+                                    1,
+                                    false,
+                                    true,
+                                    false,
+                                    false)
+                                    ,A7(Brick,
+                                    -100,
+                                    100,
+                                    1,
+                                    false,
+                                    false,
+                                    false,
+                                    false)
+                                    ,A7(Brick,
+                                    0,
+                                    100,
+                                    1,
+                                    false,
+                                    false,
+                                    false,
+                                    false)
+                                    ,A7(Brick,
+                                    100,
+                                    100,
+                                    1,
+                                    false,
+                                    false,
+                                    false,
+                                    false)
+                                    ,A7(Brick,
+                                    200,
+                                    100,
+                                    1,
+                                    false,
+                                    false,
+                                    false,
+                                    false)
+                                    ,A7(Brick,
+                                    -200,
+                                    250,
+                                    1,
+                                    false,
+                                    false,
+                                    false,
+                                    true)
+                                    ,A7(Brick,
+                                    -100,
+                                    250,
+                                    1,
+                                    false,
+                                    false,
+                                    true,
+                                    false)
+                                    ,A7(Brick,
+                                    0,
+                                    250,
+                                    1,
+                                    true,
+                                    false,
+                                    false,
+                                    false)
+                                    ,A7(Brick,
+                                    100,
+                                    250,
+                                    1,
+                                    false,
+                                    false,
+                                    false,
+                                    false)
+                                    ,A7(Brick,
+                                    200,
+                                    250,
+                                    1,
+                                    false,
+                                    false,
+                                    false,
+                                    true)]);
+   var newLevelSelector = function (level) {
+      return _U.eq(level,
+      2) ? level2Bricks : _U.eq(level,
+      3) ? level3Bricks : _U.eq(level,
+      4) ? level4Bricks : _U.eq(level,
+      5) ? level5Bricks : restartBricks;
+   };
    var Player = F6(function (a,
    b,
    c,
@@ -3376,104 +3900,26 @@ Elm.Main.make = function (_elm) {
              ,x: a
              ,y: b};
    });
-   var WonLevel1 = {ctor: "WonLevel1"};
+   var initialBallPosition = A7(Ball,
+   0,
+   0,
+   200,
+   200,
+   false,
+   false,
+   false);
+   var WonLevel = {ctor: "WonLevel"};
    var Lost = {ctor: "Lost"};
    var Won = {ctor: "Won"};
    var Pause = {ctor: "Pause"};
    var defaultGame = {_: {}
-                     ,ball: A7(Ball,
-                     0,
-                     0,
-                     200,
-                     200,
-                     false,
-                     false,
-                     false)
-                     ,bricks: _L.fromArray([A7(Brick,
-                                           -200,
-                                           100,
-                                           1,
-                                           false,
-                                           true,
-                                           false,
-                                           false)
-                                           ,A7(Brick,
-                                           -100,
-                                           100,
-                                           1,
-                                           false,
-                                           false,
-                                           false,
-                                           false)
-                                           ,A7(Brick,
-                                           0,
-                                           100,
-                                           1,
-                                           false,
-                                           false,
-                                           false,
-                                           false)
-                                           ,A7(Brick,
-                                           100,
-                                           100,
-                                           1,
-                                           false,
-                                           false,
-                                           false,
-                                           false)
-                                           ,A7(Brick,
-                                           200,
-                                           100,
-                                           1,
-                                           false,
-                                           false,
-                                           false,
-                                           false)
-                                           ,A7(Brick,
-                                           -200,
-                                           250,
-                                           1,
-                                           false,
-                                           false,
-                                           false,
-                                           true)
-                                           ,A7(Brick,
-                                           -100,
-                                           250,
-                                           1,
-                                           false,
-                                           false,
-                                           true,
-                                           false)
-                                           ,A7(Brick,
-                                           0,
-                                           250,
-                                           1,
-                                           true,
-                                           false,
-                                           false,
-                                           false)
-                                           ,A7(Brick,
-                                           100,
-                                           250,
-                                           1,
-                                           false,
-                                           false,
-                                           false,
-                                           false)
-                                           ,A7(Brick,
-                                           200,
-                                           250,
-                                           1,
-                                           false,
-                                           false,
-                                           false,
-                                           true)])
-                     ,level: 1
+                     ,ball: initialBallPosition
+                     ,bricks: restartBricks
+                     ,level: startLevel
                      ,player: player(0)
                      ,state: Pause};
    var Play = {ctor: "Play"};
-   var maxLevel = 3;
+   var maxLevel = 10;
    var $ = {ctor: "_Tuple2"
            ,_0: -10
            ,_1: 10},
@@ -3484,6 +3930,15 @@ Elm.Main.make = function (_elm) {
            ,_1: 40},
    xLeftProximity = $._0,
    xRightProximity = $._1;
+   var playerCollision = F3(function (x,
+   y,
+   p1) {
+      return _U.cmp(x,
+      p1.x + xLeftProximity) > -1 && (_U.cmp(x,
+      p1.x + xRightProximity) < 1 && (_U.cmp(y,
+      p1.y - 10) > -1 && _U.cmp(y,
+      p1.y + 10) < 1));
+   });
    var inRange = F2(function (obj1,
    obj2) {
       return _U.cmp(obj1.x,
@@ -3515,7 +3970,7 @@ Elm.Main.make = function (_elm) {
               ball,
               player);}
          _U.badCase($moduleName,
-         "between lines 173 and 178");
+         "between lines 224 and 229");
       }();
    });
    var filterBrick = F2(function (ball,
@@ -3530,7 +3985,7 @@ Elm.Main.make = function (_elm) {
             case "[]":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 240 and 245");
+         "between lines 291 and 296");
       }();
    });
    var updateBricks = F3(function (delta,
@@ -3568,23 +4023,26 @@ Elm.Main.make = function (_elm) {
                      ,A4(stepVx,
                      _v24.vx,
                      _v24.vy,
-                     _U.cmp(_v24.x,
-                     7 - halfWidth) < 0,
-                     _U.cmp(_v24.x,
-                     halfWidth - 7) > 0)]
+                     A2(collision,
+                     _v24.x,
+                     7 - halfWidth),
+                     A2(collision,
+                     halfWidth - 7,
+                     _v24.x))]
                     ,["vy"
                      ,A8(stepVy,
                      _v24.vx,
                      _v24.vy,
-                     _U.cmp(_v24.y,
-                     7 - halfHeight) < 0,
-                     _U.cmp(_v24.y,
-                     halfHeight - 7) > 0,
-                     _U.cmp(_v24.x,
-                     p1.x + xLeftProximity) > -1 && (_U.cmp(_v24.x,
-                     p1.x + xRightProximity) < 1 && (_U.cmp(_v24.y,
-                     p1.y - 10) > -1 && _U.cmp(_v24.y,
-                     p1.y + 10) < 1)),
+                     A2(collision,
+                     _v24.y,
+                     7 - halfHeight),
+                     A2(collision,
+                     halfHeight - 7,
+                     _v24.y),
+                     A3(playerCollision,
+                     _v24.x,
+                     _v24.y,
+                     p1),
                      A5(brickCollision,
                      bricks,
                      _v24,
@@ -3637,9 +4095,9 @@ Elm.Main.make = function (_elm) {
          return function () {
             return function () {
                var newBall = _U.eq(_v27.state,
-               Pause) || (_U.eq(_v27.state,
-               Won) || _U.eq(_v27.state,
-               Lost)) ? _v27.ball : A4(updateBall,
+               Lost) ? initialBallPosition : _U.eq(_v27.state,
+               Pause) || _U.eq(_v27.state,
+               Won) ? _v27.ball : A4(updateBall,
                _v26.delta,
                _v27.ball,
                _v27.player,
@@ -3648,123 +4106,26 @@ Elm.Main.make = function (_elm) {
                Play) ? Pause : _v26.space && _U.eq(_v27.state,
                Pause) ? Play : _U.eq(0,
                countBricks(_v27.bricks)) && _U.cmp(_v27.level,
-               maxLevel) < 0 ? WonLevel1 : _U.eq(0,
+               maxLevel) < 0 ? WonLevel : _U.eq(0,
                countBricks(_v27.bricks)) && _U.eq(_v27.level,
-               maxLevel) ? Won : _U.cmp(_v27.ball.y,
+               maxLevel) ? Won : _v26.space && _U.eq(_v27.state,
+               Lost) ? Play : _U.cmp(_v27.ball.y,
                -280) < 0 ? Lost : _v27.state;
+               var newLevel = _U.eq(newStateMoment,
+               WonLevel) ? _v27.level + 1 : _U.eq(newStateMoment,
+               Lost) ? 1 : _v27.level;
                var newBricks = _U.eq(newStateMoment,
-               WonLevel1) ? _L.fromArray([A7(Brick,
-                                         -100,
-                                         100,
-                                         1,
-                                         true,
-                                         false,
-                                         false,
-                                         false)
-                                         ,A7(Brick,
-                                         -100,
-                                         125,
-                                         1,
-                                         false,
-                                         false,
-                                         false,
-                                         false)
-                                         ,A7(Brick,
-                                         -100,
-                                         75,
-                                         1,
-                                         false,
-                                         false,
-                                         false,
-                                         false)
-                                         ,A7(Brick,
-                                         -200,
-                                         100,
-                                         1,
-                                         false,
-                                         false,
-                                         false,
-                                         false)
-                                         ,A7(Brick,
-                                         0,
-                                         100,
-                                         1,
-                                         false,
-                                         false,
-                                         true,
-                                         false)
-                                         ,A7(Brick,
-                                         0,
-                                         125,
-                                         1,
-                                         false,
-                                         false,
-                                         false,
-                                         false)
-                                         ,A7(Brick,
-                                         0,
-                                         150,
-                                         1,
-                                         false,
-                                         false,
-                                         false,
-                                         false)
-                                         ,A7(Brick,
-                                         0,
-                                         75,
-                                         1,
-                                         false,
-                                         false,
-                                         false,
-                                         false)
-                                         ,A7(Brick,
-                                         0,
-                                         50,
-                                         1,
-                                         false,
-                                         false,
-                                         false,
-                                         false)
-                                         ,A7(Brick,
-                                         100,
-                                         100,
-                                         1,
-                                         false,
-                                         true,
-                                         false,
-                                         false)
-                                         ,A7(Brick,
-                                         100,
-                                         125,
-                                         1,
-                                         false,
-                                         false,
-                                         false,
-                                         false)
-                                         ,A7(Brick,
-                                         100,
-                                         75,
-                                         1,
-                                         false,
-                                         false,
-                                         false,
-                                         false)
-                                         ,A7(Brick,
-                                         200,
-                                         100,
-                                         1,
-                                         false,
-                                         false,
-                                         false,
-                                         false)]) : A3(updateBricks,
+               WonLevel) ? newLevelSelector(newLevel) : _U.eq(newStateMoment,
+               Lost) ? restartBricks : A3(updateBricks,
                _v26.delta,
                _v27.bricks,
                _v27.ball);
                var newState = _U.eq(newStateMoment,
-               WonLevel1) ? Play : newStateMoment;
-               var newLevel = _U.eq(newState,
-               WonLevel1) ? _v27.level + 1 : _v27.level;
+               WonLevel) ? Play : newStateMoment;
                var score1 = 0;
+               var game_aux = A2($Debug.watch,
+               "game_aux",
+               newLevel);
                return _U.replace([["state"
                                   ,newState]
                                  ,["ball",newBall]
@@ -3832,7 +4193,7 @@ Elm.Main.make = function (_elm) {
                                  maxLevel) ? A2(txt,
                                  $Basics.identity,
                                  msgWon) : _U.eq(_v31.state,
-                                 WonLevel1) ? A2(txt,
+                                 WonLevel) ? A2(txt,
                                  $Basics.identity,
                                  msgNextLevel) : _U.eq(_v31.state,
                                  Lost) ? A2(txt,
@@ -3845,7 +4206,7 @@ Elm.Main.make = function (_elm) {
                     10)))));
                  }();}
             _U.badCase($moduleName,
-            "between lines 278 and 301");
+            "between lines 329 and 352");
          }();
       }();
    });
@@ -3867,16 +4228,26 @@ Elm.Main.make = function (_elm) {
                       ,Pause: Pause
                       ,Won: Won
                       ,Lost: Lost
-                      ,WonLevel1: WonLevel1
+                      ,WonLevel: WonLevel
                       ,Ball: Ball
                       ,Player: Player
                       ,Brick: Brick
                       ,Game: Game
                       ,player: player
                       ,defaultGame: defaultGame
+                      ,startLevel: startLevel
+                      ,initialBallPosition: initialBallPosition
                       ,Input: Input
                       ,update: update
+                      ,newLevelSelector: newLevelSelector
+                      ,level4Bricks: level4Bricks
+                      ,level3Bricks: level3Bricks
+                      ,level5Bricks: level5Bricks
+                      ,level2Bricks: level2Bricks
+                      ,restartBricks: restartBricks
                       ,updateBall: updateBall
+                      ,collision: collision
+                      ,playerCollision: playerCollision
                       ,brickCollision: brickCollision
                       ,inRange: inRange
                       ,isCollidingBrickFunction: isCollidingBrickFunction

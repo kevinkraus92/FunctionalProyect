@@ -14,9 +14,9 @@ import Debug
 (halfWidth,halfHeight) = (240,300)
 (xLeftProximity,xRightProximity) = (-40, 40)
 (yLowerProximity, yUpperProximity) = (-10, 10)
-(maxLevel) = (3)
+(maxLevel) = (10)
 
-type State = Play | Pause | Won | Lost | WonLevel1
+type State = Play | Pause | Won | Lost | WonLevel
 
 type alias Ball =
   { x : Float
@@ -62,23 +62,15 @@ player x =
 defaultGame : Game
 defaultGame =
   { state = Pause
-  , ball = Ball 0 0 200 200 False False False
+  , ball = initialBallPosition
   , player = player 0
-  , bricks = [
-      Brick -200 100 1 False True False False,
-      Brick -100 100 1 False False False False,
-      Brick 0 100 1 False False False False, 
-      Brick 100 100 1 False False False False,
-      Brick 200 100 1 False False False False,
-      Brick -200 250 1 False False False True, 
-      Brick -100 250 1 False False True False, 
-      Brick 0 250 1 True False False False, 
-      Brick 100 250 1 False False False False,
-      Brick 200 250 1 False False False True
-  ]
-  , level = 1
+  , bricks = restartBricks
+  , level = startLevel
   }
 
+startLevel = 1
+
+initialBallPosition = Ball 0 0 200 200 False False False
 type alias Input =
   { space : Bool
   , dir1 : Int
@@ -93,36 +85,95 @@ update {space,dir1, delta} ({state,ball,player,bricks,level} as game) =
   let
     score1 = 0
     newStateMoment =
-      if  | space && state == Play ->
-              Pause
+      if  | space && state == Play -> Pause
+          | space && state == Pause -> Play
+          | 0 == (countBricks bricks) && level < maxLevel -> WonLevel
+          | 0 == (countBricks bricks) && level == maxLevel -> Won
+          | space && state == Lost -> Play
+          | (ball.y < -280) -> Lost
+          | otherwise -> state
 
-          | space && state == Pause ->
-              Play
+    newLevel = if | newStateMoment == WonLevel -> (level + 1)
+                  | newStateMoment == Lost -> 1
+                  | otherwise -> level
 
-          | 0 == (countBricks bricks) && level < maxLevel ->
-              WonLevel1
+    newBall = if | state == Lost -> initialBallPosition
+                 | state == Pause || state == Won -> ball
+                 | otherwise -> updateBall delta ball player bricks
 
-          | 0 == (countBricks bricks) && level == maxLevel ->
-              Won
+    newBricks = if | newStateMoment == WonLevel -> newLevelSelector newLevel
+                   | newStateMoment == Lost -> restartBricks
+                   | otherwise -> updateBricks delta bricks ball
 
-          | (ball.y < -280) ->
-              Lost
+    newState = if | newStateMoment == WonLevel -> Play
+                  | otherwise -> newStateMoment
+  in
+  let
+    game_aux =
+      Debug.watch "game_aux" (newLevel)
+  in
+    { game |
+        state <- newState,
+        ball <- newBall,
+        player <- updatePlayer delta dir1 score1 player bricks ball,
+        bricks <- newBricks,
+        level <- newLevel
+    }
 
-          | otherwise ->
-              state
-    newLevel = if (newState == WonLevel1) 
-                 then level + 1
-               else 
-                 level
+newLevelSelector level = if | level == 2 -> level2Bricks
+                            | level == 3 -> level3Bricks
+                            | level == 4 -> level4Bricks
+                            | level == 5 -> level5Bricks
+                            | otherwise -> restartBricks
 
-    newBall =
-      if state == Pause || state == Won || state == Lost then
-        ball
-      else
-        updateBall delta ball player bricks
+level4Bricks = [Brick -100 200 1 False False True False,
+              Brick -100 125 1 False True False False,
+              Brick -100 75 1 False False True False,
+              Brick -200 100 1 True False False False,
+              Brick 0 100 1 False False True False,
+              Brick 100 200 1 False False True False,
+              Brick 100 125 1 False True False False,
+              Brick 100 75 1 False False True False,
+              Brick 200 100 1 True False False False
+              ]
 
-    newBricks = if (newStateMoment == WonLevel1) 
-                  then [Brick -100 100 1 True False False False,
+level3Bricks = [Brick -200 250 1 False False True False,
+              Brick -150 250 1 False False False False,
+              Brick -100 250 1 False True False False,
+              Brick -50 250 1 False False False False,
+              Brick 0 250 1 False False False True,
+              Brick 50 250 1 False True False False,
+              Brick 100 250 1 False False True False,
+              Brick 150 250 1 False True False False,
+              Brick 200 250 1 True False False False,
+              Brick -200 150 1 False False True False,
+              Brick -150 150 1 False False False False,
+              Brick -100 150 1 False True False False,
+              Brick -50 150 1 False False False False,
+              Brick 0 150 1 False False False True,
+              Brick 50 150 1 False True False False,
+              Brick 100 150 1 False False True False,
+              Brick 150 150 1 False True False False,
+              Brick 200 150 1 True False False False,
+              Brick -200 200 1 False False True False,
+              Brick -150 200 1 False False False False,
+              Brick -100 200 1 False True False False,
+              Brick -50 200 1 False False False False,
+              Brick 0 200 1 False False False True,
+              Brick 50 200 1 False True False False,
+              Brick 100 200 1 False False True False,
+              Brick 150 200 1 False True False False,
+              Brick 200 200 1 True False False False
+              ]
+
+level5Bricks = [Brick -100 200 1 False False True False,
+              Brick -100 125 1 False False False False,
+              Brick -100 75 1 False False False False,
+              Brick -200 100 1 False False False False,
+              Brick 0 100 1 False False True False
+              ]
+
+level2Bricks = [Brick -100 100 1 True False False False,
               Brick -100 125 1 False False False False,
               Brick -100 75 1 False False False False,
               Brick -200 100 1 False False False False,
@@ -136,20 +187,18 @@ update {space,dir1, delta} ({state,ball,player,bricks,level} as game) =
               Brick 100 75 1 False False False False,
               Brick 200 100 1 False False False False
               ]
-                else 
-                  updateBricks delta bricks ball
-
-    newState = if (newStateMoment == WonLevel1)
-                    then Play
-               else newStateMoment
-  in
-    { game |
-        state <- newState,
-        ball <- newBall,
-        player <- updatePlayer delta dir1 score1 player bricks ball,
-        bricks <- newBricks,
-        level <- newLevel
-    }
+restartBricks = [
+      Brick -200 100 1 False True False False,
+      Brick -100 100 1 False False False False,
+      Brick 0 100 1 False False False False, 
+      Brick 100 100 1 False False False False,
+      Brick 200 100 1 False False False False,
+      Brick -200 250 1 False False False True, 
+      Brick -100 250 1 False False True False, 
+      Brick 0 250 1 True False False False, 
+      Brick 100 250 1 False False False False,
+      Brick 200 250 1 False False False True
+  ]
 
 updateBall : Time -> Ball -> Player -> List(Brick)-> Ball
 updateBall t ({x,y,vx,vy, slowmo, bigball} as ball) p1 bricks =
@@ -159,17 +208,19 @@ updateBall t ({x,y,vx,vy, slowmo, bigball} as ball) p1 bricks =
     physicsUpdate t
       { ball |
           bigball <- (brickCollision bricks ball p1 isCollidingBigBallBrickFunction emptyCollidingBigballBrickFunction),
-          vx <- stepVx vx vy (x < 7-halfWidth)(x > halfWidth-7),
-          vy <- stepVy vx vy (y < 7-halfHeight) (y > halfHeight-7)
-                   ( x >= p1.x + xLeftProximity 
-                  && x <= p1.x + xRightProximity 
-                  && y >= p1.y - 10 
-                  && y <= p1.y + 10)
+          vx <- stepVx vx vy (collision x (7-halfWidth))(collision (halfWidth-7) x),
+          vy <- stepVy vx vy (collision y (7-halfHeight)) (collision (halfHeight-7) y)
+                (playerCollision x y p1)
                 (brickCollision bricks ball p1 isCollidingBrickFunction emptyCollidingBrickFunction)
                 (brickCollision bricks ball p1 brickSpecialMultiplierFunction emptyBrickSpecialMultiplierFunction) 
                 ball
       }
 
+collision a b = a < b
+playerCollision x y p1 = ( x >= p1.x + xLeftProximity 
+                  && x <= p1.x + xRightProximity 
+                  && y >= p1.y - 10 
+                  && y <= p1.y + 10)
 brickCollision bricks ball player function empty = case bricks of  
                                               [] -> empty [] ball player
                                               brick::bricks -> if (inRange ball brick)
@@ -293,7 +344,7 @@ view (w,h) {state,ball,player,bricks,level} =
 
       , toForm (if | state == Play -> spacer 1 1
                    | state == Won && level == maxLevel -> txt identity msgWon
-                   | state == WonLevel1 -> txt identity msgNextLevel
+                   | state == WonLevel -> txt identity msgNextLevel
                    | state == Lost -> txt identity msgLost
                    | otherwise -> txt identity msg)
           |> move (0, 200 - gameHeight/2)
@@ -323,7 +374,7 @@ Azul - pelota grande.
 Verde - pelota rapida
 Amarillo - paleta grande"
 msgWon = "Won"
-msgLost = "Lost"
+msgLost = "Lost. Press SPACE to restart"
 msgNextLevel = "Next level"
 
 make obj shape =

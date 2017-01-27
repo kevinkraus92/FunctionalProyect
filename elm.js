@@ -3919,7 +3919,7 @@ Elm.Main.make = function (_elm) {
                      ,player: player(0)
                      ,state: Pause};
    var Play = {ctor: "Play"};
-   var maxLevel = 10;
+   var maxLevel = 5;
    var $ = {ctor: "_Tuple2"
            ,_0: -10
            ,_1: 10},

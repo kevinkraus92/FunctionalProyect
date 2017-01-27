@@ -14,7 +14,7 @@ import Debug
 (halfWidth,halfHeight) = (240,300)
 (xLeftProximity,xRightProximity) = (-40, 40)
 (yLowerProximity, yUpperProximity) = (-10, 10)
-(maxLevel) = (10)
+(maxLevel) = (5)
 
 type State = Play | Pause | Won | Lost | WonLevel
 

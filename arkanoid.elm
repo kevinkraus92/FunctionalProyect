@@ -11,7 +11,7 @@ import Debug
 -- MODEL
 
 (gameWidth,gameHeight) = (480,600)
-(halfWidth,halfHeight) = (240,300)
+(halfWidth,halfHeight) = (255,300)
 (xLeftProximity,xRightProximity) = (-40, 40)
 (yLowerProximity, yUpperProximity) = (-10, 10)
 (maxLevel) = (5)
@@ -96,7 +96,7 @@ update {space,dir1, delta} ({state,ball,player,bricks,level} as game) =
           | otherwise -> state
 
     newLevel = if | newStateMoment == WonLevel -> (level + 1)
-                  | newStateMoment == Lost -> 1
+                  | newStateMoment == Lost -> level
                   | otherwise -> level
 
     newBall = if | state == Lost -> initialBallPosition
@@ -104,7 +104,7 @@ update {space,dir1, delta} ({state,ball,player,bricks,level} as game) =
                  | otherwise -> updateBall delta ball player bricks
 
     newBricks = if | newStateMoment == WonLevel -> newLevelSelector newLevel
-                   | newStateMoment == Lost -> restartBricks
+                   | newStateMoment == Lost -> newLevelSelector level
                    | otherwise -> updateBricks bricks ball
 
     newState = if | newStateMoment == WonLevel -> Play
@@ -196,7 +196,7 @@ restartBricks = [
       Brick 100 100 1 False False False False,
       Brick 200 100 1 False False False False,
       Brick -200 250 1 False False False True,
-      Brick -100 250 1 False False True False,
+      Brick -100 250 1 False False False False,
       Brick 0 250 1 True False False False,
       Brick 100 250 1 False False False False,
       Brick 200 250 1 False False False True
@@ -207,25 +207,14 @@ updateBall t ({x,y,vx,vy, slowmo, bigball} as ball) p1 bricks =
   if not (ball.x |> near 0 halfWidth) then
     { ball | x <- 0, y <- 0 }
   else
-    let  ball_aux = Debug.watch "b_aux" (physicsUpdate t { ball |
-        timeLeft <- updateTimeLeft ball,
-        bigball <- (brickCollision bricks ball p1 isCollidingBigBallBrickFunction emptyCollidingBigballBrickFunction),
-        speedup <- (brickCollision bricks ball p1 brickSpeedupMultiplierFunction emptyBrickSpeedupMultiplierFunction),
-        slowmo <- (brickCollision bricks ball p1 brickSlowmoMultiplierFunction emptyBrickSlowmoMultiplierFunction),
-        vx <- stepVx vx (collision x (15-halfWidth))(collision (halfWidth-15) x) (playerCollision x y p1) (playerVelocityDirection p1) ball,
-        vy <- stepVy vy (collision y (15-halfHeight)) (collision (halfHeight-15) y)
-              (playerCollision x y p1)
-              (brickCollision bricks ball p1 isCollidingBrickFunction emptyCollidingBrickFunction)
-              ball
-    }) in
     physicsUpdate t
       { ball |
           timeLeft <- updateTimeLeft ball,
           bigball <- (brickCollision bricks ball p1 isCollidingBigBallBrickFunction emptyCollidingBigballBrickFunction),
           speedup <- (brickCollision bricks ball p1 brickSpeedupMultiplierFunction emptyBrickSpeedupMultiplierFunction),
           slowmo <- (brickCollision bricks ball p1 brickSlowmoMultiplierFunction emptyBrickSlowmoMultiplierFunction),
-          vx <- stepVx vx (collision x (20-halfWidth))(collision (halfWidth-20) x) (playerCollision x y p1) (playerVelocityDirection p1) ball,
-          vy <- stepVy vy (collision y (20-halfHeight)) (collision (halfHeight-20) y)
+          vx <- stepVx vx (collision x (10-halfWidth))(collision (halfWidth-20) x) (playerCollision x y p1) (playerVelocityDirection p1) ball,
+          vy <- stepVy vy (collision y (10-halfHeight)) (collision (halfHeight-10) y)
                 (playerCollision x y p1)
                 (brickCollision bricks ball p1 isCollidingBrickFunction emptyCollidingBrickFunction)
                 ball
@@ -239,7 +228,7 @@ hasVelocity p1 = not (p1.vx == 0)
 updateTimeLeft ball = if | ball.slowmo && ball.speedup && ball.bigball -> 0
                          | ball.timeLeft < ball.totalTime && (ball.slowmo || ball.speedup || ball.bigball)-> ball.timeLeft + 1
                          | otherwise -> 0
-collision a b = a < b
+collision a b = a <= b
 
 playerCollision x y p1 = ( x >= p1.x + xLeftProximity
                   && x <= p1.x + xRightProximity
@@ -265,11 +254,11 @@ emptyCollidingBrickFunction [] ball player = False
 
 brickSpeedupMultiplierFunction : Brick -> Ball -> Player -> Bool
 brickSpeedupMultiplierFunction brick ball player =  brick.speedup
-emptyBrickSpeedupMultiplierFunction [] ball player = ball.speedup && ball.timeLeft < ball.totalTime
+emptyBrickSpeedupMultiplierFunction [] ball player = ball.speedup
 
 brickSlowmoMultiplierFunction : Brick -> Ball -> Player -> Bool
 brickSlowmoMultiplierFunction brick ball player =  brick.slowmo
-emptyBrickSlowmoMultiplierFunction [] ball player = ball.slowmo && ball.timeLeft < ball.totalTime
+emptyBrickSlowmoMultiplierFunction [] ball player = ball.slowmo
 
 isCollidingBigBallBrickFunction : Brick -> Ball -> Player -> Bool
 isCollidingBigBallBrickFunction brick ball player = ball.bigball || brick.bigball

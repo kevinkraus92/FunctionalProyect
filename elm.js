@@ -3157,7 +3157,7 @@ Elm.Main.make = function (_elm) {
             case "[]":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 419 and 424");
+         "between lines 408 and 413");
       }();
    });
    var make = F2(function (obj,
@@ -3229,7 +3229,7 @@ Elm.Main.make = function (_elm) {
             case "[]":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 311 and 316");
+         "between lines 300 and 305");
       }();
    });
    var physicsUpdatePlayer = F2(function (t,
@@ -3257,7 +3257,7 @@ Elm.Main.make = function (_elm) {
             return 1 + countBricks(bricks._1);
             case "[]": return 0;}
          _U.badCase($moduleName,
-         "between lines 281 and 283");
+         "between lines 270 and 272");
       }();
    };
    var bigPadFunction = F3(function (brick,
@@ -3273,7 +3273,7 @@ Elm.Main.make = function (_elm) {
          {case "[]":
             return player.bigpad;}
          _U.badCase($moduleName,
-         "on line 278, column 38 to 51");
+         "on line 267, column 38 to 51");
       }();
    });
    var emptyCollidingBigballBrickFunction = F3(function (_v15,
@@ -3285,7 +3285,7 @@ Elm.Main.make = function (_elm) {
             return ball.bigball && _U.cmp(ball.timeLeft,
               ball.totalTime) < 0;}
          _U.badCase($moduleName,
-         "on line 276, column 53 to 99");
+         "on line 265, column 53 to 99");
       }();
    });
    var isCollidingBigBallBrickFunction = F3(function (brick,
@@ -3298,11 +3298,9 @@ Elm.Main.make = function (_elm) {
    player) {
       return function () {
          switch (_v17.ctor)
-         {case "[]":
-            return ball.slowmo && _U.cmp(ball.timeLeft,
-              ball.totalTime) < 0;}
+         {case "[]": return ball.slowmo;}
          _U.badCase($moduleName,
-         "on line 272, column 53 to 98");
+         "on line 261, column 53 to 64");
       }();
    });
    var brickSlowmoMultiplierFunction = F3(function (brick,
@@ -3316,10 +3314,9 @@ Elm.Main.make = function (_elm) {
       return function () {
          switch (_v19.ctor)
          {case "[]":
-            return ball.speedup && _U.cmp(ball.timeLeft,
-              ball.totalTime) < 0;}
+            return ball.speedup;}
          _U.badCase($moduleName,
-         "on line 268, column 54 to 100");
+         "on line 257, column 54 to 66");
       }();
    });
    var brickSpeedupMultiplierFunction = F3(function (brick,
@@ -3334,7 +3331,7 @@ Elm.Main.make = function (_elm) {
          switch (_v21.ctor)
          {case "[]": return false;}
          _U.badCase($moduleName,
-         "on line 264, column 46 to 51");
+         "on line 253, column 46 to 51");
       }();
    });
    var isCollidingBrickFunction = F3(function (brick,
@@ -3344,7 +3341,7 @@ Elm.Main.make = function (_elm) {
    });
    var collision = F2(function (a,
    b) {
-      return _U.cmp(a,b) < 0;
+      return _U.cmp(a,b) < 1;
    });
    var updateTimeLeft = function (ball) {
       return ball.slowmo && (ball.speedup && ball.bigball) ? 0 : _U.cmp(ball.timeLeft,
@@ -3891,7 +3888,7 @@ Elm.Main.make = function (_elm) {
                                     1,
                                     false,
                                     false,
-                                    true,
+                                    false,
                                     false)
                                     ,A7(Brick,
                                     0,
@@ -4039,7 +4036,7 @@ Elm.Main.make = function (_elm) {
               ball,
               player);}
          _U.badCase($moduleName,
-         "between lines 249 and 254");
+         "between lines 238 and 243");
       }();
    });
    var updateBricks = F2(function (bricks,
@@ -4050,7 +4047,7 @@ Elm.Main.make = function (_elm) {
       bricks);
    });
    var $ = {ctor: "_Tuple2"
-           ,_0: 240
+           ,_0: 255
            ,_1: 300},
    halfWidth = $._0,
    halfHeight = $._1;
@@ -4064,132 +4061,67 @@ Elm.Main.make = function (_elm) {
          halfWidth)(_v26.x)) ? _U.replace([["x"
                                            ,0]
                                           ,["y",0]],
-         _v26) : function () {
-            var ball_aux = A2($Debug.watch,
-            "b_aux",
-            A2(physicsUpdate,
-            t,
-            _U.replace([["timeLeft"
-                        ,updateTimeLeft(_v26)]
-                       ,["bigball"
-                        ,A5(brickCollision,
-                        bricks,
-                        _v26,
-                        p1,
-                        isCollidingBigBallBrickFunction,
-                        emptyCollidingBigballBrickFunction)]
-                       ,["speedup"
-                        ,A5(brickCollision,
-                        bricks,
-                        _v26,
-                        p1,
-                        brickSpeedupMultiplierFunction,
-                        emptyBrickSpeedupMultiplierFunction)]
-                       ,["slowmo"
-                        ,A5(brickCollision,
-                        bricks,
-                        _v26,
-                        p1,
-                        brickSlowmoMultiplierFunction,
-                        emptyBrickSlowmoMultiplierFunction)]
-                       ,["vx"
-                        ,A6(stepVx,
-                        _v26.vx,
-                        A2(collision,
-                        _v26.x,
-                        15 - halfWidth),
-                        A2(collision,
-                        halfWidth - 15,
-                        _v26.x),
-                        A3(playerCollision,
-                        _v26.x,
-                        _v26.y,
-                        p1),
-                        playerVelocityDirection(p1),
-                        _v26)]
-                       ,["vy"
-                        ,A6(stepVy,
-                        _v26.vy,
-                        A2(collision,
-                        _v26.y,
-                        15 - halfHeight),
-                        A2(collision,
-                        halfHeight - 15,
-                        _v26.y),
-                        A3(playerCollision,
-                        _v26.x,
-                        _v26.y,
-                        p1),
-                        A5(brickCollision,
-                        bricks,
-                        _v26,
-                        p1,
-                        isCollidingBrickFunction,
-                        emptyCollidingBrickFunction),
-                        _v26)]],
-            _v26)));
-            return A2(physicsUpdate,
-            t,
-            _U.replace([["timeLeft"
-                        ,updateTimeLeft(_v26)]
-                       ,["bigball"
-                        ,A5(brickCollision,
-                        bricks,
-                        _v26,
-                        p1,
-                        isCollidingBigBallBrickFunction,
-                        emptyCollidingBigballBrickFunction)]
-                       ,["speedup"
-                        ,A5(brickCollision,
-                        bricks,
-                        _v26,
-                        p1,
-                        brickSpeedupMultiplierFunction,
-                        emptyBrickSpeedupMultiplierFunction)]
-                       ,["slowmo"
-                        ,A5(brickCollision,
-                        bricks,
-                        _v26,
-                        p1,
-                        brickSlowmoMultiplierFunction,
-                        emptyBrickSlowmoMultiplierFunction)]
-                       ,["vx"
-                        ,A6(stepVx,
-                        _v26.vx,
-                        A2(collision,
-                        _v26.x,
-                        20 - halfWidth),
-                        A2(collision,
-                        halfWidth - 20,
-                        _v26.x),
-                        A3(playerCollision,
-                        _v26.x,
-                        _v26.y,
-                        p1),
-                        playerVelocityDirection(p1),
-                        _v26)]
-                       ,["vy"
-                        ,A6(stepVy,
-                        _v26.vy,
-                        A2(collision,
-                        _v26.y,
-                        20 - halfHeight),
-                        A2(collision,
-                        halfHeight - 20,
-                        _v26.y),
-                        A3(playerCollision,
-                        _v26.x,
-                        _v26.y,
-                        p1),
-                        A5(brickCollision,
-                        bricks,
-                        _v26,
-                        p1,
-                        isCollidingBrickFunction,
-                        emptyCollidingBrickFunction),
-                        _v26)]],
-            _v26));
-         }();
+         _v26) : A2(physicsUpdate,
+         t,
+         _U.replace([["timeLeft"
+                     ,updateTimeLeft(_v26)]
+                    ,["bigball"
+                     ,A5(brickCollision,
+                     bricks,
+                     _v26,
+                     p1,
+                     isCollidingBigBallBrickFunction,
+                     emptyCollidingBigballBrickFunction)]
+                    ,["speedup"
+                     ,A5(brickCollision,
+                     bricks,
+                     _v26,
+                     p1,
+                     brickSpeedupMultiplierFunction,
+                     emptyBrickSpeedupMultiplierFunction)]
+                    ,["slowmo"
+                     ,A5(brickCollision,
+                     bricks,
+                     _v26,
+                     p1,
+                     brickSlowmoMultiplierFunction,
+                     emptyBrickSlowmoMultiplierFunction)]
+                    ,["vx"
+                     ,A6(stepVx,
+                     _v26.vx,
+                     A2(collision,
+                     _v26.x,
+                     10 - halfWidth),
+                     A2(collision,
+                     halfWidth - 20,
+                     _v26.x),
+                     A3(playerCollision,
+                     _v26.x,
+                     _v26.y,
+                     p1),
+                     playerVelocityDirection(p1),
+                     _v26)]
+                    ,["vy"
+                     ,A6(stepVy,
+                     _v26.vy,
+                     A2(collision,
+                     _v26.y,
+                     10 - halfHeight),
+                     A2(collision,
+                     halfHeight - 10,
+                     _v26.y),
+                     A3(playerCollision,
+                     _v26.x,
+                     _v26.y,
+                     p1),
+                     A5(brickCollision,
+                     bricks,
+                     _v26,
+                     p1,
+                     isCollidingBrickFunction,
+                     emptyCollidingBrickFunction),
+                     _v26)]],
+         _v26));
       }();
    });
    var updatePlayer = F6(function (t,
@@ -4246,10 +4178,10 @@ Elm.Main.make = function (_elm) {
                -280) < 0 ? Lost : _v29.state;
                var newLevel = _U.eq(newStateMoment,
                WonLevel) ? _v29.level + 1 : _U.eq(newStateMoment,
-               Lost) ? 1 : _v29.level;
+               Lost) ? _v29.level : _v29.level;
                var newBricks = _U.eq(newStateMoment,
                WonLevel) ? newLevelSelector(newLevel) : _U.eq(newStateMoment,
-               Lost) ? restartBricks : A2(updateBricks,
+               Lost) ? newLevelSelector(_v29.level) : A2(updateBricks,
                _v29.bricks,
                _v29.ball);
                var newState = _U.eq(newStateMoment,
@@ -4352,7 +4284,7 @@ Elm.Main.make = function (_elm) {
                     10)))));
                  }();}
             _U.badCase($moduleName,
-            "between lines 352 and 378");
+            "between lines 341 and 367");
          }();
       }();
    });

@@ -112,7 +112,7 @@ update {space,dir1, delta} ({state,ball,player,bricks,level} as game) =
   in
   let
     game_aux =
-      Debug.watch "game_aux" (newLevel)
+      Debug.watch "game_aux" (newLevel, newBall)
   in
     { game |
         state <- newState,
@@ -207,15 +207,27 @@ updateBall t ({x,y,vx,vy, slowmo, bigball} as ball) p1 bricks =
   if not (ball.x |> near 0 halfWidth) then
     { ball | x <- 0, y <- 0 }
   else
+    let  ball_aux = Debug.watch "b_aux" (physicsUpdate t { ball |
+        timeLeft <- updateTimeLeft ball,
+        bigball <- (brickCollision bricks ball p1 isCollidingBigBallBrickFunction emptyCollidingBigballBrickFunction),
+        speedup <- (brickCollision bricks ball p1 brickSpeedupMultiplierFunction emptyBrickSpeedupMultiplierFunction),
+        slowmo <- (brickCollision bricks ball p1 brickSlowmoMultiplierFunction emptyBrickSlowmoMultiplierFunction),
+        vx <- stepVx vx (collision x (15-halfWidth))(collision (halfWidth-15) x) (playerCollision x y p1) (playerVelocityDirection p1) ball,
+        vy <- stepVy vy (collision y (15-halfHeight)) (collision (halfHeight-15) y)
+              (playerCollision x y p1)
+              (brickCollision bricks ball p1 isCollidingBrickFunction emptyCollidingBrickFunction)
+              ball
+    }) in
     physicsUpdate t
       { ball |
           timeLeft <- updateTimeLeft ball,
           bigball <- (brickCollision bricks ball p1 isCollidingBigBallBrickFunction emptyCollidingBigballBrickFunction),
-          vx <- stepVx vx (collision x (10-halfWidth))(collision (halfWidth-10) x) (playerCollision x y p1) (playerVelocityDirection p1),
-          vy <- stepVy vy (collision y (10-halfHeight)) (collision (halfHeight-10) y)
+          speedup <- (brickCollision bricks ball p1 brickSpeedupMultiplierFunction emptyBrickSpeedupMultiplierFunction),
+          slowmo <- (brickCollision bricks ball p1 brickSlowmoMultiplierFunction emptyBrickSlowmoMultiplierFunction),
+          vx <- stepVx vx (collision x (20-halfWidth))(collision (halfWidth-20) x) (playerCollision x y p1) (playerVelocityDirection p1) ball,
+          vy <- stepVy vy (collision y (20-halfHeight)) (collision (halfHeight-20) y)
                 (playerCollision x y p1)
                 (brickCollision bricks ball p1 isCollidingBrickFunction emptyCollidingBrickFunction)
-                (brickCollision bricks ball p1 brickSpecialMultiplierFunction emptyBrickSpecialMultiplierFunction)
                 ball
       }
 
@@ -224,7 +236,8 @@ playerVelocityDirection p1 = if | p1.vx > 0  -> 1
                                 | otherwise  -> -1
 
 hasVelocity p1 = not (p1.vx == 0)
-updateTimeLeft ball = if | ball.timeLeft < ball.totalTime -> ball.timeLeft + 1
+updateTimeLeft ball = if | ball.slowmo && ball.speedup && ball.bigball -> 0
+                         | ball.timeLeft < ball.totalTime && (ball.slowmo || ball.speedup || ball.bigball)-> ball.timeLeft + 1
                          | otherwise -> 0
 collision a b = a < b
 
@@ -250,20 +263,17 @@ isCollidingBrickFunction brick ball player = True
 
 emptyCollidingBrickFunction [] ball player = False
 
-emptyBrickSpecialMultiplierFunction [] ball player = 1
+brickSpeedupMultiplierFunction : Brick -> Ball -> Player -> Bool
+brickSpeedupMultiplierFunction brick ball player =  brick.speedup
+emptyBrickSpeedupMultiplierFunction [] ball player = ball.speedup && ball.timeLeft < ball.totalTime
 
-emptyCollidingBigballBrickFunction [] ball player = ball.bigball && ball.timeLeft < ball.totalTime
-
-brickSpecialMultiplierFunction : Brick -> Ball -> Player -> Float
-brickSpecialMultiplierFunction brick ball player = if  | brick.slowmo ->
-                                                          0.5
-                                                       | brick.speedup ->
-                                                          2.0
-                                                       | otherwise ->
-                                                          1
+brickSlowmoMultiplierFunction : Brick -> Ball -> Player -> Bool
+brickSlowmoMultiplierFunction brick ball player =  brick.slowmo
+emptyBrickSlowmoMultiplierFunction [] ball player = ball.slowmo && ball.timeLeft < ball.totalTime
 
 isCollidingBigBallBrickFunction : Brick -> Ball -> Player -> Bool
 isCollidingBigBallBrickFunction brick ball player = ball.bigball || brick.bigball
+emptyCollidingBigballBrickFunction [] ball player = ball.bigball && ball.timeLeft < ball.totalTime
 
 emptyBigPadFunction [] ball player = player.bigpad
 bigPadFunction brick ball player = brick.bigpad
@@ -290,7 +300,7 @@ physicsUpdatePlayer t ({x,y,vx,vy} as obj) =
 updatePlayer : Time -> Int -> Int -> Player -> List(Brick) -> Ball -> Player
 updatePlayer t dir points player bricks ball =
   let
-    player_aux = (physicsUpdatePlayer  t { player | vx <- toFloat dir * 200 })
+    player_aux = Debug.watch "p_aux" (physicsUpdatePlayer  t { player | vx <- toFloat dir * 200 })
   in
     { player_aux |
         x <- clamp (60-halfHeight) (halfHeight-60) player_aux.x,
@@ -309,27 +319,31 @@ filterBrick function ball bricks = case bricks of
 near punto rango nuevopunto =
   nuevopunto >= punto-rango && nuevopunto <= punto+rango
 
-stepVx vx leftCollision rightCollision playerCollision side =
-  if  | leftCollision ->
-          abs vx
-      | rightCollision ->
-          -(abs vx)
+stepVx vx leftCollision rightCollision playerCollision side ball =
+  if  | leftCollision -> abs vx
+      | ball.slowmo -> (sign vx) * 100
+      | ball.speedup -> (sign vx) * 200
+      | rightCollision -> -(abs vx)
       | playerCollision && not (side == 0) -> 1.1 * vx
-      | otherwise ->
-          vx
+      | otherwise -> 200 * (sign vx)
 
-stepVy vy upperCollision lowerCollision playerCollision brickCollision specialBlock ball =
-  if  | brickCollision && not ball.slowmo ->
-          -1* vy * specialBlock
-      | brickCollision || playerCollision ->
-          -1* vy
-      | upperCollision ->
-          abs vy
-      | lowerCollision ->
-          -(abs vy)
-      | otherwise ->
-          vy
+stepVy vy upperCollision lowerCollision playerCollision brickCollision ball =
+  if  | (brickCollision || playerCollision) && ball.slowmo -> -1 * (sign vy) * 100
+      | (brickCollision || playerCollision) && ball.speedup -> -1 * (sign vy) * 300
+      | (brickCollision || playerCollision) -> -1 * vy
+      | upperCollision && ball.slowmo -> abs 100
+      | upperCollision && ball.speedup -> abs 300
+      | upperCollision -> abs vy
+      | lowerCollision && ball.slowmo -> -(abs 100)
+      | lowerCollision && ball.speedup -> -(abs 300)
+      | lowerCollision -> -(abs vy)
+      | ball.speedup -> 300 * (sign vy)
+      | ball.slowmo -> 100 * (sign vy)
+      | otherwise -> 200 * (sign vy)
 
+sign x = if | x > 0 -> 1
+            | x < 0 -> -1
+            | otherwise -> 0
 
 -- VIEW
 
@@ -351,7 +365,9 @@ view (w,h) {state,ball,player,bricks,level} =
             | otherwise -> rect 80 10)
           |> make player
 
-      , toForm (if | state == Play && ball.bigball -> remainingTime identity ball.timeLeft
+      , toForm (if | state == Play && ball.bigball -> remainingTime identity ball.timeLeft blue
+                   | state == Play && ball.slowmo -> remainingTime identity ball.timeLeft red
+                   | state == Play && ball.speedup -> remainingTime identity ball.timeLeft green
                    | state == Play -> spacer 1 1
                    | state == Won && level == maxLevel -> txt identity msgWon
                    | state == WonLevel -> txt identity msgNextLevel
@@ -377,9 +393,9 @@ txt f string =
     |> f
     |> leftAligned
 
-remainingTime f string =
+remainingTime f string textColor =
   Text.fromString (toString string)
-    |> Text.color textGreen
+    |> Text.color textColor
     |> Text.monospace
     |> f
     |> leftAligned

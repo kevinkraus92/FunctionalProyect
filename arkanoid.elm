@@ -103,7 +103,7 @@ update {space,dir1, delta} ({state,ball,player,bricks,level} as game) =
 
     newBricks = if | newStateMoment == WonLevel -> newLevelSelector newLevel
                    | newStateMoment == Lost -> restartBricks
-                   | otherwise -> updateBricks delta bricks ball
+                   | otherwise -> updateBricks bricks ball
 
     newState = if | newStateMoment == WonLevel -> Play
                   | otherwise -> newStateMoment
@@ -177,11 +177,11 @@ level2Bricks = [Brick -100 100 1 True False False False,
               Brick -100 125 1 False False False False,
               Brick -100 75 1 False False False False,
               Brick -200 100 1 False False False False,
-              Brick 0 100 1 False False True False, 
-              Brick 0 125 1 False False False False, 
-              Brick 0 150 1 False False False False, 
-              Brick 0 75 1 False False False False, 
-              Brick 0 50 1 False False False False, 
+              Brick 0 100 1 False False True False,
+              Brick 0 125 1 False False False False,
+              Brick 0 150 1 False False False False,
+              Brick 0 75 1 False False False False,
+              Brick 0 50 1 False False False False,
               Brick 100 100 1 False True False False,
               Brick 100 125 1 False False False False,
               Brick 100 75 1 False False False False,
@@ -190,12 +190,12 @@ level2Bricks = [Brick -100 100 1 True False False False,
 restartBricks = [
       Brick -200 100 1 False True False False,
       Brick -100 100 1 False False False False,
-      Brick 0 100 1 False False False False, 
+      Brick 0 100 1 False False False False,
       Brick 100 100 1 False False False False,
       Brick 200 100 1 False False False False,
-      Brick -200 250 1 False False False True, 
-      Brick -100 250 1 False False True False, 
-      Brick 0 250 1 True False False False, 
+      Brick -200 250 1 False False False True,
+      Brick -100 250 1 False False True False,
+      Brick 0 250 1 True False False False,
       Brick 100 250 1 False False False False,
       Brick 200 250 1 False False False True
   ]
@@ -208,35 +208,35 @@ updateBall t ({x,y,vx,vy, slowmo, bigball} as ball) p1 bricks =
     physicsUpdate t
       { ball |
           bigball <- (brickCollision bricks ball p1 isCollidingBigBallBrickFunction emptyCollidingBigballBrickFunction),
-          vx <- stepVx vx vy (collision x (7-halfWidth))(collision (halfWidth-7) x),
-          vy <- stepVy vx vy (collision y (7-halfHeight)) (collision (halfHeight-7) y)
+          vx <- stepVx vx (collision x (7-halfWidth))(collision (halfWidth-7) x),
+          vy <- stepVy vy (collision y (7-halfHeight)) (collision (halfHeight-7) y)
                 (playerCollision x y p1)
                 (brickCollision bricks ball p1 isCollidingBrickFunction emptyCollidingBrickFunction)
-                (brickCollision bricks ball p1 brickSpecialMultiplierFunction emptyBrickSpecialMultiplierFunction) 
+                (brickCollision bricks ball p1 brickSpecialMultiplierFunction emptyBrickSpecialMultiplierFunction)
                 ball
       }
 
 collision a b = a < b
-playerCollision x y p1 = ( x >= p1.x + xLeftProximity 
-                  && x <= p1.x + xRightProximity 
-                  && y >= p1.y - 10 
+playerCollision x y p1 = ( x >= p1.x + xLeftProximity
+                  && x <= p1.x + xRightProximity
+                  && y >= p1.y - 10
                   && y <= p1.y + 10)
-brickCollision bricks ball player function empty = case bricks of  
+brickCollision bricks ball player function empty = case bricks of
                                               [] -> empty [] ball player
                                               brick::bricks -> if (inRange ball brick)
                                                                   then function brick ball player
-                                                               else 
+                                                               else
                                                                brickCollision bricks ball player function empty
 
-inRange obj1 obj2 = (obj1.x >= obj2.x + xLeftProximity 
-                   && obj1.x <= obj2.x + xRightProximity 
-                   && obj1.y >= obj2.y + yLowerProximity 
+inRange obj1 obj2 = (obj1.x >= obj2.x + xLeftProximity
+                   && obj1.x <= obj2.x + xRightProximity
+                   && obj1.y >= obj2.y + yLowerProximity
                    && obj1.y <= obj2.y + yUpperProximity)
 
 isCollidingBrickFunction : Brick -> Ball -> Player -> Bool
 isCollidingBrickFunction brick ball player = True
 
-emptyCollidingBrickFunction [] ball player = False 
+emptyCollidingBrickFunction [] ball player = False
 
 emptyBrickSpecialMultiplierFunction [] ball player = 1
 
@@ -260,8 +260,8 @@ countBricks bricks = case bricks of
                               [] -> 0
                               brick::bricks -> 1 + countBricks bricks
 
-updateBricks : Time -> List(Brick) -> Ball -> List(Brick)
-updateBricks delta bricks ball = filterBrick ball bricks
+updateBricks : List(Brick) -> Ball -> List(Brick)
+updateBricks bricks ball = filterBrick inRange ball bricks
 
 physicsUpdate t ({x,y,vx,vy,bigball} as obj) =
   { obj |
@@ -278,28 +278,26 @@ physicsUpdatePlayer t ({x,y,vx,vy} as obj) =
 updatePlayer : Time -> Int -> Int -> Player -> List(Brick) -> Ball -> Player
 updatePlayer t dir points player bricks ball =
   let
-    player_aux =
-      Debug.watch "p_aux" (physicsUpdatePlayer  t { player | vx <- toFloat dir * 200 })
+    player_aux = (physicsUpdatePlayer  t { player | vx <- toFloat dir * 200 })
   in
     { player_aux |
         x <- clamp (60-halfHeight) (halfHeight-60) player_aux.x,
         score <- player.score + points,
-        bigpad <- (brickCollision bricks ball player bigPadFunction emptyBigPadFunction) 
+        bigpad <- (brickCollision bricks ball player bigPadFunction emptyBigPadFunction)
     }
 
-filterBrick : Ball -> List(Brick) -> List(Brick)
-filterBrick ball bricks = case bricks of
+filterBrick function ball bricks = case bricks of
               [] -> []
-              brick::bricks -> if (inRange ball brick)
+              brick::bricks -> if (function ball brick)
                   then bricks
-                  else 
-                  brick::filterBrick ball bricks
+                  else
+                  brick::filterBrick function ball bricks
 
 
 near punto rango nuevopunto =
   nuevopunto >= punto-rango && nuevopunto <= punto+rango
 
-stepVx vx vy leftCollision rightCollision =
+stepVx vx leftCollision rightCollision =
   if  | leftCollision ->
           abs vx
       | rightCollision ->
@@ -307,12 +305,10 @@ stepVx vx vy leftCollision rightCollision =
       | otherwise ->
           vx
 
-stepVy vx vy upperCollision lowerCollision playerCollision brickCollision specialBlock ball =
-  if  | playerCollision ->
-          -1* vy
-      | brickCollision && not ball.slowmo ->
+stepVy vy upperCollision lowerCollision playerCollision brickCollision specialBlock ball =
+  if  | brickCollision && not ball.slowmo ->
           -1* vy * specialBlock
-      | brickCollision ->
+      | brickCollision || playerCollision ->
           -1* vy
       | upperCollision ->
           abs vy
@@ -368,14 +364,14 @@ txt f string =
     |> leftAligned
 
 
-msg = "SPACE to start, &larr;&rarr; to move . 
-Rojo - slowmotion. 
-Azul - pelota grande. 
+msg = "ESPACIO para comenzar, &larr;&rarr; para desplazarse .
+Rojo - pelota lenta.
+Azul - pelota grande.
 Verde - pelota rapida
 Amarillo - paleta grande"
-msgWon = "Won"
-msgLost = "Lost. Press SPACE to restart"
-msgNextLevel = "Next level"
+msgWon = "Ganaste"
+msgLost = "Perdiste. Presiona ESPACIO para reiniciar"
+msgNextLevel = "Siguiente nivel"
 
 make obj shape =
   shape
@@ -392,7 +388,7 @@ makeList objlist shape =
                   ) :: makeList obj shape
 
 asignColor brick = if | brick.slowmo -> filled red
-                      | brick.speedup -> filled green 
+                      | brick.speedup -> filled green
                       | brick.bigball -> filled blue
                       | brick.bigpad -> filled yellow
                       | otherwise -> filled white

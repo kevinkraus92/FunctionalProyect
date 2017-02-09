@@ -3157,7 +3157,7 @@ Elm.Main.make = function (_elm) {
             case "[]":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 387 and 392");
+         "between lines 383 and 388");
       }();
    });
    var make = F2(function (obj,
@@ -3166,10 +3166,10 @@ Elm.Main.make = function (_elm) {
                                     ,_0: obj.x
                                     ,_1: obj.y})($Graphics$Collage.filled($Color.white)(shape));
    });
-   var msgNextLevel = "Next level";
-   var msgLost = "Lost. Press SPACE to restart";
-   var msgWon = "Won";
-   var msg = "SPACE to start, &larr;&rarr; to move . \nRojo - slowmotion. \nAzul - pelota grande. \nVerde - pelota rapida\nAmarillo - paleta grande";
+   var msgNextLevel = "Siguiente nivel";
+   var msgLost = "Perdiste. Presiona ESPACIO para reiniciar";
+   var msgWon = "Ganaste";
+   var msg = "ESPACIO para comenzar, &larr;&rarr; para desplazarse .\nRojo - pelota lenta.\nAzul - pelota grande.\nVerde - pelota rapida\nAmarillo - paleta grande";
    var textGreen = A3($Color.rgb,
    160,
    200,
@@ -3179,18 +3179,16 @@ Elm.Main.make = function (_elm) {
       return $Graphics$Element.leftAligned(f($Text.monospace($Text.color(textGreen)($Text.fromString(string)))));
    });
    var pong = A3($Color.rgb,0,0,0);
-   var stepVy = F8(function (vx,
-   vy,
+   var stepVy = F7(function (vy,
    upperCollision,
    lowerCollision,
    playerCollision,
    brickCollision,
    specialBlock,
    ball) {
-      return playerCollision ? -1 * vy : brickCollision && $Basics.not(ball.slowmo) ? -1 * vy * specialBlock : brickCollision ? -1 * vy : upperCollision ? $Basics.abs(vy) : lowerCollision ? 0 - $Basics.abs(vy) : vy;
+      return brickCollision && $Basics.not(ball.slowmo) ? -1 * vy * specialBlock : brickCollision || playerCollision ? -1 * vy : upperCollision ? $Basics.abs(vy) : lowerCollision ? 0 - $Basics.abs(vy) : vy;
    });
-   var stepVx = F4(function (vx,
-   vy,
+   var stepVx = F3(function (vx,
    leftCollision,
    rightCollision) {
       return leftCollision ? $Basics.abs(vx) : rightCollision ? 0 - $Basics.abs(vx) : vx;
@@ -3202,22 +3200,41 @@ Elm.Main.make = function (_elm) {
       punto - rango) > -1 && _U.cmp(nuevopunto,
       punto + rango) < 1;
    });
+   var filterBrick = F3(function ($function,
+   ball,
+   bricks) {
+      return function () {
+         switch (bricks.ctor)
+         {case "::": return A2($function,
+              ball,
+              bricks._0) ? bricks._1 : A2($List._op["::"],
+              bricks._0,
+              A3(filterBrick,
+              $function,
+              ball,
+              bricks._1));
+            case "[]":
+            return _L.fromArray([]);}
+         _U.badCase($moduleName,
+         "between lines 289 and 294");
+      }();
+   });
    var physicsUpdatePlayer = F2(function (t,
-   _v3) {
+   _v6) {
       return function () {
          return _U.replace([["x"
-                            ,_v3.x + _v3.vx * t]
-                           ,["y",_v3.y + _v3.vy * t]],
-         _v3);
+                            ,_v6.x + _v6.vx * t]
+                           ,["y",_v6.y + _v6.vy * t]],
+         _v6);
       }();
    });
    var physicsUpdate = F2(function (t,
-   _v5) {
+   _v8) {
       return function () {
          return _U.replace([["x"
-                            ,_v5.x + _v5.vx * t]
-                           ,["y",_v5.y + _v5.vy * t]],
-         _v5);
+                            ,_v8.x + _v8.vx * t]
+                           ,["y",_v8.y + _v8.vy * t]],
+         _v8);
       }();
    });
    var countBricks = function (bricks) {
@@ -3235,11 +3252,11 @@ Elm.Main.make = function (_elm) {
    player) {
       return brick.bigpad;
    });
-   var emptyBigPadFunction = F3(function (_v10,
+   var emptyBigPadFunction = F3(function (_v13,
    ball,
    player) {
       return function () {
-         switch (_v10.ctor)
+         switch (_v13.ctor)
          {case "[]":
             return player.bigpad;}
          _U.badCase($moduleName,
@@ -3256,32 +3273,32 @@ Elm.Main.make = function (_elm) {
    player) {
       return brick.slowmo ? 0.5 : brick.speedup ? 2.0 : 1;
    });
-   var emptyCollidingBigballBrickFunction = F3(function (_v12,
+   var emptyCollidingBigballBrickFunction = F3(function (_v15,
    ball,
    player) {
       return function () {
-         switch (_v12.ctor)
+         switch (_v15.ctor)
          {case "[]":
             return ball.bigball;}
          _U.badCase($moduleName,
          "on line 243, column 53 to 65");
       }();
    });
-   var emptyBrickSpecialMultiplierFunction = F3(function (_v14,
+   var emptyBrickSpecialMultiplierFunction = F3(function (_v17,
    ball,
    player) {
       return function () {
-         switch (_v14.ctor)
+         switch (_v17.ctor)
          {case "[]": return 1;}
          _U.badCase($moduleName,
          "on line 241, column 54 to 55");
       }();
    });
-   var emptyCollidingBrickFunction = F3(function (_v16,
+   var emptyCollidingBrickFunction = F3(function (_v19,
    ball,
    player) {
       return function () {
-         switch (_v16.ctor)
+         switch (_v19.ctor)
          {case "[]": return false;}
          _U.badCase($moduleName,
          "on line 239, column 46 to 51");
@@ -3973,25 +3990,10 @@ Elm.Main.make = function (_elm) {
          "between lines 224 and 229");
       }();
    });
-   var filterBrick = F2(function (ball,
-   bricks) {
-      return function () {
-         switch (bricks.ctor)
-         {case "::": return A2(inRange,
-              ball,
-              bricks._0) ? bricks._1 : A2($List._op["::"],
-              bricks._0,
-              A2(filterBrick,ball,bricks._1));
-            case "[]":
-            return _L.fromArray([]);}
-         _U.badCase($moduleName,
-         "between lines 291 and 296");
-      }();
-   });
-   var updateBricks = F3(function (delta,
-   bricks,
+   var updateBricks = F2(function (bricks,
    ball) {
-      return A2(filterBrick,
+      return A3(filterBrick,
+      inRange,
       ball,
       bricks);
    });
@@ -4020,9 +4022,8 @@ Elm.Main.make = function (_elm) {
                      isCollidingBigBallBrickFunction,
                      emptyCollidingBigballBrickFunction)]
                     ,["vx"
-                     ,A4(stepVx,
+                     ,A3(stepVx,
                      _v24.vx,
-                     _v24.vy,
                      A2(collision,
                      _v24.x,
                      7 - halfWidth),
@@ -4030,8 +4031,7 @@ Elm.Main.make = function (_elm) {
                      halfWidth - 7,
                      _v24.x))]
                     ,["vy"
-                     ,A8(stepVy,
-                     _v24.vx,
+                     ,A7(stepVy,
                      _v24.vy,
                      A2(collision,
                      _v24.y,
@@ -4066,13 +4066,11 @@ Elm.Main.make = function (_elm) {
    bricks,
    ball) {
       return function () {
-         var player_aux = A2($Debug.watch,
-         "p_aux",
-         A2(physicsUpdatePlayer,
+         var player_aux = A2(physicsUpdatePlayer,
          t,
          _U.replace([["vx"
                      ,$Basics.toFloat(dir) * 200]],
-         player)));
+         player));
          return _U.replace([["x"
                             ,A3($Basics.clamp,
                             60 - halfHeight,
@@ -4116,8 +4114,7 @@ Elm.Main.make = function (_elm) {
                Lost) ? 1 : _v27.level;
                var newBricks = _U.eq(newStateMoment,
                WonLevel) ? newLevelSelector(newLevel) : _U.eq(newStateMoment,
-               Lost) ? restartBricks : A3(updateBricks,
-               _v26.delta,
+               Lost) ? restartBricks : A2(updateBricks,
                _v27.bricks,
                _v27.ball);
                var newState = _U.eq(newStateMoment,
@@ -4206,7 +4203,7 @@ Elm.Main.make = function (_elm) {
                     10)))));
                  }();}
             _U.badCase($moduleName,
-            "between lines 329 and 352");
+            "between lines 325 and 348");
          }();
       }();
    });

@@ -3157,7 +3157,7 @@ Elm.Main.make = function (_elm) {
             case "[]":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 383 and 388");
+         "between lines 403 and 408");
       }();
    });
    var make = F2(function (obj,
@@ -3178,6 +3178,10 @@ Elm.Main.make = function (_elm) {
    string) {
       return $Graphics$Element.leftAligned(f($Text.monospace($Text.color(textGreen)($Text.fromString(string)))));
    });
+   var remainingTime = F2(function (f,
+   string) {
+      return $Graphics$Element.leftAligned(f($Text.monospace($Text.color(textGreen)($Text.fromString($Basics.toString(string))))));
+   });
    var pong = A3($Color.rgb,0,0,0);
    var stepVy = F7(function (vy,
    upperCollision,
@@ -3188,10 +3192,13 @@ Elm.Main.make = function (_elm) {
    ball) {
       return brickCollision && $Basics.not(ball.slowmo) ? -1 * vy * specialBlock : brickCollision || playerCollision ? -1 * vy : upperCollision ? $Basics.abs(vy) : lowerCollision ? 0 - $Basics.abs(vy) : vy;
    });
-   var stepVx = F3(function (vx,
+   var stepVx = F5(function (vx,
    leftCollision,
-   rightCollision) {
-      return leftCollision ? $Basics.abs(vx) : rightCollision ? 0 - $Basics.abs(vx) : vx;
+   rightCollision,
+   playerCollision,
+   side) {
+      return leftCollision ? $Basics.abs(vx) : rightCollision ? 0 - $Basics.abs(vx) : playerCollision && $Basics.not(_U.eq(side,
+      0)) ? 1.1 * vx : vx;
    });
    var near = F3(function (punto,
    rango,
@@ -3216,7 +3223,7 @@ Elm.Main.make = function (_elm) {
             case "[]":
             return _L.fromArray([]);}
          _U.badCase($moduleName,
-         "between lines 289 and 294");
+         "between lines 301 and 306");
       }();
    });
    var physicsUpdatePlayer = F2(function (t,
@@ -3244,7 +3251,7 @@ Elm.Main.make = function (_elm) {
             return 1 + countBricks(bricks._1);
             case "[]": return 0;}
          _U.badCase($moduleName,
-         "between lines 259 and 261");
+         "between lines 271 and 273");
       }();
    };
    var bigPadFunction = F3(function (brick,
@@ -3260,7 +3267,7 @@ Elm.Main.make = function (_elm) {
          {case "[]":
             return player.bigpad;}
          _U.badCase($moduleName,
-         "on line 256, column 38 to 51");
+         "on line 268, column 38 to 51");
       }();
    });
    var isCollidingBigBallBrickFunction = F3(function (brick,
@@ -3279,9 +3286,10 @@ Elm.Main.make = function (_elm) {
       return function () {
          switch (_v15.ctor)
          {case "[]":
-            return ball.bigball;}
+            return ball.bigball && _U.cmp(ball.timeLeft,
+              ball.totalTime) < 0;}
          _U.badCase($moduleName,
-         "on line 243, column 53 to 65");
+         "on line 255, column 53 to 99");
       }();
    });
    var emptyBrickSpecialMultiplierFunction = F3(function (_v17,
@@ -3291,7 +3299,7 @@ Elm.Main.make = function (_elm) {
          switch (_v17.ctor)
          {case "[]": return 1;}
          _U.badCase($moduleName,
-         "on line 241, column 54 to 55");
+         "on line 253, column 54 to 55");
       }();
    });
    var emptyCollidingBrickFunction = F3(function (_v19,
@@ -3301,7 +3309,7 @@ Elm.Main.make = function (_elm) {
          switch (_v19.ctor)
          {case "[]": return false;}
          _U.badCase($moduleName,
-         "on line 239, column 46 to 51");
+         "on line 251, column 46 to 51");
       }();
    });
    var isCollidingBrickFunction = F3(function (brick,
@@ -3313,6 +3321,19 @@ Elm.Main.make = function (_elm) {
    b) {
       return _U.cmp(a,b) < 0;
    });
+   var updateTimeLeft = function (ball) {
+      return _U.cmp(ball.timeLeft,
+      ball.totalTime) < 0 ? ball.timeLeft + 1 : 0;
+   };
+   var hasVelocity = function (p1) {
+      return $Basics.not(_U.eq(p1.vx,
+      0));
+   };
+   var playerVelocityDirection = function (p1) {
+      return _U.cmp(p1.vx,
+      0) > 0 ? 1 : _U.eq(p1.vx,
+      0) ? 0 : -1;
+   };
    var Input = F3(function (a,
    b,
    c) {
@@ -3901,30 +3922,36 @@ Elm.Main.make = function (_elm) {
       0,
       false);
    };
-   var Ball = F7(function (a,
+   var Ball = F9(function (a,
    b,
    c,
    d,
    e,
    f,
-   g) {
+   g,
+   h,
+   i) {
       return {_: {}
              ,bigball: f
              ,slowmo: e
              ,speedup: g
+             ,timeLeft: h
+             ,totalTime: i
              ,vx: c
              ,vy: d
              ,x: a
              ,y: b};
    });
-   var initialBallPosition = A7(Ball,
+   var initialBallPosition = A9(Ball,
    0,
    0,
    200,
    200,
    false,
    false,
-   false);
+   false,
+   0,
+   300);
    var WonLevel = {ctor: "WonLevel"};
    var Lost = {ctor: "Lost"};
    var Won = {ctor: "Won"};
@@ -3987,7 +4014,7 @@ Elm.Main.make = function (_elm) {
               ball,
               player);}
          _U.badCase($moduleName,
-         "between lines 224 and 229");
+         "between lines 236 and 241");
       }();
    });
    var updateBricks = F2(function (bricks,
@@ -4014,7 +4041,9 @@ Elm.Main.make = function (_elm) {
                                           ,["y",0]],
          _v24) : A2(physicsUpdate,
          t,
-         _U.replace([["bigball"
+         _U.replace([["timeLeft"
+                     ,updateTimeLeft(_v24)]
+                    ,["bigball"
                      ,A5(brickCollision,
                      bricks,
                      _v24,
@@ -4022,22 +4051,27 @@ Elm.Main.make = function (_elm) {
                      isCollidingBigBallBrickFunction,
                      emptyCollidingBigballBrickFunction)]
                     ,["vx"
-                     ,A3(stepVx,
+                     ,A5(stepVx,
                      _v24.vx,
                      A2(collision,
                      _v24.x,
-                     7 - halfWidth),
+                     10 - halfWidth),
                      A2(collision,
-                     halfWidth - 7,
-                     _v24.x))]
+                     halfWidth - 10,
+                     _v24.x),
+                     A3(playerCollision,
+                     _v24.x,
+                     _v24.y,
+                     p1),
+                     playerVelocityDirection(p1))]
                     ,["vy"
                      ,A7(stepVy,
                      _v24.vy,
                      A2(collision,
                      _v24.y,
-                     7 - halfHeight),
+                     10 - halfHeight),
                      A2(collision,
-                     halfHeight - 7,
+                     halfHeight - 10,
                      _v24.y),
                      A3(playerCollision,
                      _v24.x,
@@ -4183,6 +4217,9 @@ Elm.Main.make = function (_elm) {
                                  ,$Graphics$Collage.move({ctor: "_Tuple2"
                                                          ,_0: 0
                                                          ,_1: 200 - gameHeight / 2})($Graphics$Collage.toForm(_U.eq(_v31.state,
+                                 Play) && _v31.ball.bigball ? A2(remainingTime,
+                                 $Basics.identity,
+                                 _v31.ball.timeLeft) : _U.eq(_v31.state,
                                  Play) ? A2($Graphics$Element.spacer,
                                  1,
                                  1) : _U.eq(_v31.state,
@@ -4203,7 +4240,7 @@ Elm.Main.make = function (_elm) {
                     10)))));
                  }();}
             _U.badCase($moduleName,
-            "between lines 325 and 348");
+            "between lines 338 and 362");
          }();
       }();
    });
@@ -4243,6 +4280,9 @@ Elm.Main.make = function (_elm) {
                       ,level2Bricks: level2Bricks
                       ,restartBricks: restartBricks
                       ,updateBall: updateBall
+                      ,playerVelocityDirection: playerVelocityDirection
+                      ,hasVelocity: hasVelocity
+                      ,updateTimeLeft: updateTimeLeft
                       ,collision: collision
                       ,playerCollision: playerCollision
                       ,brickCollision: brickCollision
@@ -4268,6 +4308,7 @@ Elm.Main.make = function (_elm) {
                       ,pong: pong
                       ,textGreen: textGreen
                       ,txt: txt
+                      ,remainingTime: remainingTime
                       ,msg: msg
                       ,msgWon: msgWon
                       ,msgLost: msgLost

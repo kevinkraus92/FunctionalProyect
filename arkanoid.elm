@@ -26,6 +26,8 @@ type alias Ball =
   , slowmo: Bool
   , bigball : Bool
   , speedup: Bool
+  , timeLeft: Int
+  , totalTime: Int
   }
 
 type alias Player =
@@ -70,7 +72,7 @@ defaultGame =
 
 startLevel = 1
 
-initialBallPosition = Ball 0 0 200 200 False False False
+initialBallPosition = Ball 0 0 200 200 False False False 0 300
 type alias Input =
   { space : Bool
   , dir1 : Int
@@ -207,20 +209,30 @@ updateBall t ({x,y,vx,vy, slowmo, bigball} as ball) p1 bricks =
   else
     physicsUpdate t
       { ball |
+          timeLeft <- updateTimeLeft ball,
           bigball <- (brickCollision bricks ball p1 isCollidingBigBallBrickFunction emptyCollidingBigballBrickFunction),
-          vx <- stepVx vx (collision x (7-halfWidth))(collision (halfWidth-7) x),
-          vy <- stepVy vy (collision y (7-halfHeight)) (collision (halfHeight-7) y)
+          vx <- stepVx vx (collision x (10-halfWidth))(collision (halfWidth-10) x) (playerCollision x y p1) (playerVelocityDirection p1),
+          vy <- stepVy vy (collision y (10-halfHeight)) (collision (halfHeight-10) y)
                 (playerCollision x y p1)
                 (brickCollision bricks ball p1 isCollidingBrickFunction emptyCollidingBrickFunction)
                 (brickCollision bricks ball p1 brickSpecialMultiplierFunction emptyBrickSpecialMultiplierFunction)
                 ball
       }
 
+playerVelocityDirection p1 = if | p1.vx > 0  -> 1
+                                | p1.vx == 0 -> 0
+                                | otherwise  -> -1
+
+hasVelocity p1 = not (p1.vx == 0)
+updateTimeLeft ball = if | ball.timeLeft < ball.totalTime -> ball.timeLeft + 1
+                         | otherwise -> 0
 collision a b = a < b
+
 playerCollision x y p1 = ( x >= p1.x + xLeftProximity
                   && x <= p1.x + xRightProximity
                   && y >= p1.y - 10
                   && y <= p1.y + 10)
+
 brickCollision bricks ball player function empty = case bricks of
                                               [] -> empty [] ball player
                                               brick::bricks -> if (inRange ball brick)
@@ -240,7 +252,7 @@ emptyCollidingBrickFunction [] ball player = False
 
 emptyBrickSpecialMultiplierFunction [] ball player = 1
 
-emptyCollidingBigballBrickFunction [] ball player = ball.bigball
+emptyCollidingBigballBrickFunction [] ball player = ball.bigball && ball.timeLeft < ball.totalTime
 
 brickSpecialMultiplierFunction : Brick -> Ball -> Player -> Float
 brickSpecialMultiplierFunction brick ball player = if  | brick.slowmo ->
@@ -297,11 +309,12 @@ filterBrick function ball bricks = case bricks of
 near punto rango nuevopunto =
   nuevopunto >= punto-rango && nuevopunto <= punto+rango
 
-stepVx vx leftCollision rightCollision =
+stepVx vx leftCollision rightCollision playerCollision side =
   if  | leftCollision ->
           abs vx
       | rightCollision ->
           -(abs vx)
+      | playerCollision && not (side == 0) -> 1.1 * vx
       | otherwise ->
           vx
 
@@ -338,7 +351,8 @@ view (w,h) {state,ball,player,bricks,level} =
             | otherwise -> rect 80 10)
           |> make player
 
-      , toForm (if | state == Play -> spacer 1 1
+      , toForm (if | state == Play && ball.bigball -> remainingTime identity ball.timeLeft
+                   | state == Play -> spacer 1 1
                    | state == Won && level == maxLevel -> txt identity msgWon
                    | state == WonLevel -> txt identity msgNextLevel
                    | state == Lost -> txt identity msgLost
@@ -363,6 +377,12 @@ txt f string =
     |> f
     |> leftAligned
 
+remainingTime f string =
+  Text.fromString (toString string)
+    |> Text.color textGreen
+    |> Text.monospace
+    |> f
+    |> leftAligned
 
 msg = "ESPACIO para comenzar, &larr;&rarr; para desplazarse .
 Rojo - pelota lenta.

@@ -14,7 +14,7 @@ import Debug
 (halfWidth,halfHeight) = (255,300)
 (xLeftProximity,xRightProximity) = (-40, 40)
 (yLowerProximity, yUpperProximity) = (-10, 10)
-(maxLevel) = (5)
+(maxLevel) = (4)
 
 type State = Play | Pause | Won | Lost | WonLevel
 
@@ -105,6 +105,7 @@ update {space,dir1, delta} ({state,ball,player,bricks,level} as game) =
 
     newBricks = if | newStateMoment == WonLevel -> newLevelSelector newLevel
                    | newStateMoment == Lost -> newLevelSelector level
+                   | newStateMoment == Won -> restartBricks
                    | otherwise -> updateBricks bricks ball
 
     newState = if | newStateMoment == WonLevel -> Play
